@@ -1,37 +1,52 @@
 # Info21 v1.0
 
-Анализ и статистика данных по школе 21.
+Data analysis and statistics for School 21.
+
 
 ## Contents
 
 1. [Chapter I](#chapter-i) \
     1.1. [Introduction](#introduction)
 2. [Chapter II](#chapter-ii) \
-    2.1. [Information](#information) \
-    2.2. [Information](#information)
+    2.1. [General rules](#general-rules) \
+    2.2. [Logical view of database model](#logical-view-of-database-model)
 3. [Chapter III](#chapter-iii) \
-    3.1. [Part 1. Создание базы данных](#part-1-создание-базы-данных)  
-    3.2. [Part 2. Изменение данных](#part-2-изменение-данных)  
-    3.3. [Part 3. Получение данных](#part-3-получение-данных)  
-    3.4. [Дополнительно. Part 4. Метаданные](#дополнительно-part-4-метаданные)
+   3.1. [Part 1. Database creation](#part-1-creating-a-database)  
+   3.2. [Part 2. Changing data](#part-2-changing-data)  
+   3.3. [Part 3. Getting data](#part-3-getting-data)  
+   3.4. [Bonus. Part 4. Metadata](#bonus-part-4-metadata)
 
 ## Chapter I
+
+![Info21 v1.0](misc/images/SQL2_Info21_v1.0.jpg)
+
+Chuck decided to work from home. Next to him on the table was a warm, freshly brewed cup of coffee with a thin stream of steam rising over it. Both monitors had the OS boot screen on and a few moments later the welcome screen popped up. Chuck lazily reached for his mouse. He clicked it and got to the directory with the work files. Although he works in the finance department, today he had a completely different task: to help implement another idea that came from above, since he is one of those few employees who are somehow familiar with SQL. \
+Structured Query Language, or as its creators once claimed - a language in which "every housewife would be able to write a database query". But the housewives Chuck knew from the office couldn't cope with it, so he was usually the one who had the honor of handling database-related tasks. His past experience as a programmer helped. After all, he had spent four years at the university for a reason.
+ 
+`-` "First, I should create the database," Chuck thought to himself. - "Entities with parameters were already written down somewhere, all that is left is to figure out relations. A third normal form would definitely do it." \
+Chuck reached for the paper, but out of the corner of his eye he noticed the printed financial statements for the past period resting on a table. \
+`-` "I’ll deal with them later, this first. And remembering SQL on such an easy task wouldn't be a waste of time." \
+After sipping his coffee first, he finally got to the paper. \
+`-` "Okay, let's see what we can do here", Chuck began his musings.
+
 ## Introduction
 
-В данном проекте Вам предстоит закрепить на практике ваши знания SQL. 
-Вам нужно будет создать базу данных со знаниями о Школе 21 и написать процедуры и функции для получения информации, а также процедуры и триггеры для её изменения.
+In this project, you will have to put your knowledge of SQL into practice. 
+You will need to create a database with data about School 21 and write procedures and functions to retrieve information, as well as procedures and triggers to change it.
+
 
 ## Chapter II
+
 ## General Rules
 
 - Use this page as the only reference. Do not listen to any rumors and speculations on how to prepare your solution.
 - Please make sure you are using the latest version of PostgreSQL.
-- That is completely OK if you are using IDE to write a source code (aka SQL script).
+- That is completely OK if you are using an IDE to write a source code (aka SQL script).
 - To be assessed your solution must be in your GIT repository.
-- Your solutions will be evaluated by your mates.
-- You should not leave in your directory any other file except sql scripts or csv files. It is recommended that you modify your `.gitignore` to avoid accidents.
+- Your solutions will be evaluated by your peers.
+- You should not leave any additional files in your directory other than sql scripts or csv files. It is recommended that you modify your `.gitignore` to avoid accidents.
 - Do you have a question? Ask your neighbor on the right. Otherwise, try with your neighbor on the left.
-- Your reference manual: mates / Internet / Google.
+- Your reference manual: peers / Internet / Google.
 - And may the SQL-Force be with you!
 - Absolutely everything can be presented in SQL! Let’s start and have fun!
 
@@ -39,385 +54,394 @@
 
 ![SQL2](./misc/images/SQL2.png)
 
-*Все поля при описании таблиц перечисленны в том же порядке, что и на схеме.*
+*All fields in the table descriptions are listed in the same order as in the schema.*
 
-#### Таблица Peers
-- Ник пира
-- День рождения
+#### Peers table
 
-#### Таблица Tasks
-- Название задания
-- Название задания, являющегося условием входа
-- Максимальное количество XP
+- Peer’s nickname
+- Birthday
 
-Чтобы получить доступ к заданию, нужно выполнить задание, являющееся его условием входа.
-Для упрощения будем считать, что у каждого задания всего одно условие входа.
-В таблице должно быть одно задание, у которого нет условия входа (т.е. поле ParentTask равно null).
+#### Tasks table
 
-#### Статус проверки
-Создать тип перечисления для статуса проверки, содержащий следующие значения:
-- Start - начало проверки
-- Success - успешное окончание проверки
-- Failure - неудачное окончание проверки
+- Name of the task
+- Name of the task, which is the entry condition
+- Maximum number of XP
 
-#### Таблица P2P
+To access the task, you must complete the task that is its entry condition.
+For simplicity, assume that each task has only one entry condition.
+There must be one task in the table that has no entry condition (i.e., the ParentTask field is null).
+
+#### Check status
+
+Create an enumeration type for the check status that contains the following values:
+- Start - the check starts
+- Success - successful completion of the check
+- Failure - unsuccessful completion of the check
+
+#### P2P Table
+
 - ID
-- ID проверки
-- Ник проверяющего пира
-- [Статус P2P проверки](#статус-проверки)
-- Время
+- Check ID
+- Nickname of the checking peer
+- [P2P check status](#check-status)
+- Time
 
-Каждая P2P проверка состоит из 2-х записей в таблице: первая имеет статус начало, вторая - успех или неуспех. 
-Каждая P2P проверка (т.е. обе записи, из которых она состоит) ссылается на проверку в таблице Checks, к которой она относится. 
+Each P2P check consists of 2 table records: the first has a start status, the second has a success or failure status. \
+Each P2P check (i.e. both records of which it consists) refers to the check in the Checks table to which it belongs. 
 
-#### Таблица Verter
+#### Verter Table
+
 - ID
-- ID проверки
-- [Статус проверки Verter'ом](#статус-проверки)
-- Время 
+- Check ID
+- [Check status by Verter](#check-status)
+- Time
 
-Каждая проверка Verter'ом состоит из 2-х записей в таблице: первая имеет статус начало, вторая - успех или неуспех.
-Каждая проверка Verter'ом (т.е. обе записи, из которых она состоит) ссылается на проверку в таблице Checks, к которой она относится.
-Проверка Verter'ом может ссылаться только на те проверки в таблице Checks, которые уже включают в себя успешную P2P проверку.
+Each check by Verter consists of 2 table records: the first has a start status, the second has a success or failure status. \
+Each check by Verter (i.e. both records of which it consists) refers to the check in the Checks table to which it belongs. \
+Сheck by Verter can only refer to those checks in the Checks table that already include a successful P2P check.
 
-#### Таблица Checks
-- ID 
-- Ник пира
-- Название задания
-- Дата проверки
+#### Checks table
 
-Описывает проверку задания в целом. Проверка обязательно включает в себя этап P2P и, возможно, этап Verter.
-Для упрощения будем считать, что пир ту пир и автотесты, относящиеся к одной проверке, всегда происходят в один день.
-
-Проверка считается успешной, если соответствующий P2P этап успешен, а этап Verter успешен, либо отсутствует.
-Проверка считается неуспешной, хоть один из этапов неуспешен.
-То есть проверки, в которых ещё не завершился этап P2P, или этап P2P успешен, но ещё не завершился этап Verter, не относятся ни к успешным, ни к неуспешным.
-
-#### Таблица TransferedPoints
 - ID
-- Ник проверяющего пира
-- Ник проверяемого пира
-- Количество переданных пир поинтов за всё время (только от проверяемого к проверяющему)
+- Peer’s nickname
+- Name of the task
+- Check date
 
-При каждой P2P проверке проверяемый пир передаёт один пир поинт проверяющему.
-Эта таблица содержит все пары проверяемый-проверяющий и кол-во переданных пир поинтов, то есть, 
-другими словами, количество P2P проверок указанного проверяемого пира, указанным проверяющим.
+Describes the check of the task as a whole. The check necessarily includes a P2P step and possibly a Verter step.
+For simplicity, assume that peer to peer and autotests related to the same check always happen on the same day.
 
-#### Таблица Friends
+The check is considered successful if the corresponding P2P step is successful and the Verter step is successful, or if there is no Verter step.
+The check is considered a failure if at least one of the steps is unsuccessful. This means that checks in which the P2P step has not yet been completed, or it is successful but the Verter step has not yet been completed, are neither successful nor failed.
+
+#### TransferredPoints table
+
 - ID
-- Ник первого пира
-- Ник второго пира 
+- Nickname of the checking peer
+- Nickname of the peer being checked
+- Number of transferred peer points for all time (only from the one being checked to the checker)
 
-Дружба взаимная, т.е. первый пир является другом второго, а второй -- другом первого.
+At each P2P check, the peer being checked passes one peer point to the checker.
+This table contains all pairs of the peer being checked-the checker and the number of transferred peer points, that is the number of P2P checks of the specified peer by the specified checker.
 
-#### Таблица Recomendations
+#### Friends table
+
 - ID
-- Ник пира
-- Ник пира, к которому рекомендуют идти на проверку
+- Nickname of the first peer
+- Nickname of the second peer
 
-Каждому может понравиться, как проходила P2P проверка у того или итого пира. 
-Пир, указанный в поле Peer, рекомендует проходить P2P проверку у пира из поля RecomendedPeer. 
-Каждый пир может рекомендовать как ни одного, так и сразу несколько проверяющих.
+Friendship is mutual, i.e. the first peer is a friend of the second one, and vice versa.
 
-#### Таблица XP
+#### Recommendations table
+
 - ID
-- ID проверки
-- Количество полученного XP
+- Nickname of the peer
+- Nickname of the peer to whom it is recommended to go for the check
 
-За каждую успешную проверку пир, выполнивший задание, получает какое-то количество XP, отображаемое в этой таблице. 
-Количество XP не может превышать максимальное доступное для проверяемой задачи. 
-Первое поле этой таблицы может ссылаться только на успешные проверки.
+Everyone can like how the P2P check was performed by a particular peer. The peer specified in the Peer field recommends passing the P2P check from the peer in the RecommendedPeer field. 
+Each peer can recommend either one or several checkers at a time.
 
-#### Таблица TimeTracking
+#### XP Table
+
 - ID
-- Ник пира
-- Дата
-- Время
-- Состояние (1 - пришел, 2 - вышел)
+- Check ID
+- Number of XP received
 
-Данная таблица содержит информация о посещениях пирами кампуса. 
-Когда пир входит в кампус, в таблицу добавляется запись с состоянием 1, когда покидает - с состоянием 2. 
+For each successful check, the peer who completes the task receives some amount of XP displayed in this table.
+The amount of XP cannot exceed the maximum available number for the task being checked.
+The first field of this table can only refer to successful checks.
 
-В заданиях, относящихся к этой таблице, под действием "выходить" подразумеваются все покидания кампуса за день, кроме последнего. 
-В течение одного дня должно быть одинаковое количество записей с состоянием 1 и состоянием 2 для каждого пира.
+#### TimeTracking table
 
-Например:
+- ID
+- Peer's nickname
+- Date
+- Time
+- State (1 - in, 2 - out)
 
-| ID | Peer  | Date     | Time  | State |
-|----|-------|----------|-------|-------|
-| 1  | Aboba | 22.03.22 | 13:37 | 1     |
-| 2  | Aboba | 22.03.22 | 15:48 | 2     |
-| 3  | Aboba | 22.03.22 | 16:02 | 1     |
-| 4  | Aboba | 22.03.22 | 20:00 | 2     |
+This table contains information about peers' visits to campus.
+When a peer enters campus, a record is added to the table with state 1, when leaving it adds a record with state 2. 
 
-В этом примере "выходом" является только запись с ID, равным 2. Пир с ником Aboba выходил из кампуса на 14 минут.
+In tasks related to this table, the "out" action refers to all but the last Campus departure of the day.
+There must be the same number of records with state 1 and state 2 for each peer during one day.
+
+For example:
+
+| ID | Peer | Date   | Time | State |
+|---|------|--------|------|---|
+| 1 | Aboba | 22.03.22 | 13:37 | 1 |
+| 2 | Aboba | 22.03.22 | 15:48 | 2 |
+| 3 | Aboba | 22.03.22 | 16:02 | 1 |
+| 4 | Aboba | 22.03.22 | 20:00 | 2 |
+
+In this example, the only "out" is the record with an ID equal to 2. Peer with the nickname Aboba has been out of campus for 14 minutes.
+
 
 ## Chapter III
 
-## Part 1. Создание базы данных
+## Part 1. Creating a database
 
-Напишите скрипт *part1.sql*, создающий базу данных и все таблицы, описанные выше. 
+Write a *part1.sql* script that creates the database and all the tables described above.
 
-Также внесите в скрипт процедуры, позволяющие импортировать и экспортировать данные для каждой таблицы из файла/в файл с расширением *.csv*. \
-В качестве параметра каждой процедуры указывается разделитель *csv* файла.
+Also, add procedures to the script that allow you to import and export data for each table from/to a file with a *.csv* extension. \
+The *csv* file separator is specified as a parameter of each procedure.
 
-В каждую из таблиц внесите как минимум по 5 записей. 
-По мере выполнения задания вам потребуются новые данные, чтобы проверить все варианты работы. 
-Эти новые данные также должны быть добавлены в этом скрипте.
+In each of the tables, enter at least 5 records.
+As you progress through the task, you will need new data to test all of your choices.
+This new data needs to be added to this script as well.
 
-Если для добавления данных в таблицы использовались *csv* файлы, они также должны быть выгружены в GIT репозиторий.
+If *csv* files were used to add data to the tables, they must also be uploaded to the GIT repository.
 
-## Part 2. Изменение данных
+## Part 2. Changing data
 
-Создайте скрипт *part2.sql*, в который, помимо описанного ниже, внесите тестовые запросы / вызовы для каждого пункта.
+Create a *part2.sql* script, in which, in addition to what is described below, add test queries/calls for each item.
 
-##### 1) Написать процедуру добавления P2P проверки
-Параметры: ник проверяемого, ник проверяющего, название задания, [статус P2P проверки](#статус-проверки), время. \
-Если задан статус "начало", добавить запись в таблицу Checks (в качестве даты использовать сегодняшнюю). \
-Добавить запись в таблицу P2P. \
-Если задан статус "начало", в качестве проверки указать только что добавленную запись, иначе указать проверку с самым поздним (по времени) незавершенным P2P этапом
+##### 1) Write a procedure for adding P2P check
+Parameters: nickname of the person being checked, checker's nickname, task name, [P2P check status]( #check-status), time. \
+If the status is "start", add a record in the Checks table (use today's date). \
+Add a record in the P2P table. \
+If the status is "start", specify the record just added as a check, otherwise specify the check with the latest (by time) unfinished P2P step.
 
-##### 2) Написать процедуру добавления проверки Verter'ом
-Параметры: ник проверяемого, название задания, [статус проверки Verter'ом](#статус-проверки), время. \
-Добавить запись в таблицу Verter (в качестве проверки указать проверку соответствующего задания с самым поздним (по времени) успешным P2P этапом)
+##### 2) Write a procedure for adding checking by Verter
+Parameters: nickname of the person being checked, task name, [Verter check status](#check-status), time. \
+Add a record to the Verter table (as a check specify the check of the corresponding task with the latest (by time) successful P2P step)
 
-##### 3) Написать триггер: после добавления записи со статутом "начало" в таблицу P2P, изменить соответствующую запись в таблице TransferedPoints
+##### 3) Write a trigger: after adding a record with the "start" status to the P2P table, change the corresponding record in the TransferredPoints table
 
-##### 4) Написать триггер: перед добавлением записи в таблицу XP, проверить корректность добавляемой записи
-Запись считается корректной, если:
-- Количество XP не превышает максимальное доступное для проверяемой задачи
-- Поле Check ссылается на успешную проверку
-Если запись не прошла проверку, не добавлять её в таблицу.
+##### 4) Write a trigger: before adding a record to the XP table, check if it is correct
+The record is considered correct if:
+- The number of XP does not exceed the maximum available for the task being checked
+- The Check field refers to a successful check
+If the record does not pass the check, do not add it to the table.
 
-## Part 3. Получение данных
+### Part 3. Getting data
 
-Создайте скрипт *part3.sql*, в который внесите описанные далее процедуры и функции 
-(считать процедурами все задания, в которых не указано, что это функция).
+Create a *part3.sql* script, in which you should include the following procedures and functions
+(consider as procedures all tasks that do not specify that they are functions).
 
-##### 1) Написать функцию, возвращающую таблицу TransferedPoints в более человекочитаемом виде
-Ник пира 1, ник пира 2, количество переданных пир поинтов. \
-Количество отрицательное, если пир 2 получил от пира 1 больше поинтов.
+##### 1) Write a function that returns the TransferredPoints table in a more human-readable form
+Peer's nickname 1, Peer's nickname 2, number of transferred peer points. \
+The number is negative if peer 2 received more points from peer 1.
 
-Пример вывода:
-| Peer1  | Peer2  | PointsAmount |
-|--------|--------|--------------|
-| Aboba  | Amogus | 5            |
-| Amogus | Sus    | -2           |
-| Sus    | Aboba  | 0            |
+Output example:
 
-##### 2) Написать функцию, которая возвращает таблицу вида: ник пользователя, название проверенного задания, кол-во полученного XP
-В таблицу включать только задания, успешно прошедшие проверку (определять по таблице Checks). \
-Одна задача может быть успешно выполнена несколько раз. В таком случае в таблицу включать все успешные проверки.
+| Peer1 | Peer2 | PointsAmount |
+|------|------|----|
+| Aboba | Amogus | 5  |
+| Amogus | Sus  | -2 |
+| Sus  | Aboba | 0  |
 
-Пример вывода:
-| Peer   | Task | XP  |
+##### 2) Write a function that returns a table of the following form: user name, name of the checked task, number of XP received
+Include in the table only tasks that have successfully passed the check (according to the Checks table). \
+One task can be completed successfully several times. In this case, include all successful checks in the table.
+
+Output example:
+
+| Peer   | Task | XP  |
 |--------|------|-----|
-| Aboba  | C8   | 800 |
-| Aboba  | CPP3 | 750 |
-| Amogus | DO5  | 175 |
-| Sus    | A4   | 325 |
+| Aboba  | C8   | 800 |
+| Aboba  | CPP3 | 750 |
+| Amogus | DO5  | 175 |
+| Sus    | A4   | 325 |
 
-##### 3) Написать функцию, определяющую пиров, которые не выходили из кампуса в течение всего дня
-Параметры функции: день, например 12.05.2022. \
-Функция возвращает только список пиров.
+##### 3) Write a function that finds the peers who have not left campus for the whole day
+Function parameters: day, for example 12.05.2022. \
+The function returns only a list of peers.
 
-##### 4) Найти процент успешных и неуспешных проверок за всё время
-Формат вывода: процент успешных, процент неуспешных
+##### 4) Find the percentage of successful and unsuccessful checks for all time
+Output format: percentage of successful checks, percentage of unsuccessful ones
 
-Пример вывода:
+Output example:
 | SuccessfulChecks | UnsuccessfulChecks |
 |------------------|--------------------|
-| 35               | 65                 |
+| 35               | 65                 |
 
-##### 5) Посчитать изменение в количестве пир поинтов каждого пира по таблице TransferedPoints
-Результат вывести отсортированным по изменению числа поинтов. \
-Формат вывода: ник пира, изменение в количество пир поинтов
+##### 5) Calculate the change in the number of peer points of each peer using the TransferredPoints table
+Output the result sorted by the change in the number of points. \
+Output format: peer's nickname, change in the number of peer points
 
-Пример вывода:
-| Peer   | PointsChange |
+Output example:
+| Peer   | PointsChange |
 |--------|--------------|
-| Aboba  | 8            |
-| Amogus | 1            |
-| Sus    | -3           |
+| Aboba  | 8            |
+| Amogus | 1            |
+| Sus    | -3           |
 
-##### 6) Посчитать изменение в количестве пир поинтов каждого пира по таблице, возвращаемой [первой функцией из Part 2](#1-написать-функцию-возвращающую-таблицу-transferedpoints-в-более-удобном-виде)
-Результат вывести отсортированным по изменению числа поинтов. \
-Формат вывода: ник пира, изменение в количество пир поинтов
+##### 6) Calculate the change in the number of peer points of each peer using the table returned by [the first function from Part 3](#1-write-a-function-that-returns-the-transferredpoints-table-in-a-more-human-readable-form)
+Output the result sorted by the change in the number of points. \
+Output format: peer's nickname, change in the number of peer points
 
-Пример вывода:
-| Peer   | PointsChange |
+Output example:
+| Peer   | PointsChange |
 |--------|--------------|
-| Aboba  | 8            |
-| Amogus | 1            |
-| Sus    | -3           |
+| Aboba  | 8            |
+| Amogus | 1            |
+| Sus    | -3           |
 
-##### 7) Определить самое часто проверяемое задание за каждый день
-При одинаковом количестве проверок каких-то заданий в определенный день, вывести их все. \
-Формат вывода: день, название задания
+##### 7) Find the most frequently checked task for each day
+If there is the same number of checks for some tasks in a certain day, output all of them. \
+Output format: day, task name
 
-Пример вывода:
-| Day        | Task |
+Output example:
+| Day        | Task |
 |------------|------|
-| 12.05.2022 | A1   |
+| 12.05.2022 | A1   |
 | 17.04.2022 | CPP3 |
-| 23.12.2021 | C5   |
+| 23.12.2021 | C5   |
 
-##### 8) Определить длительность последней P2P проверки
-Под длительностью подразумевается разница между временем, указанным в записи со статусом "начало", и временем, указанным в записи со статусом "успех" или "неуспех". \
-Формат вывода: длительность проверки
+##### 8) Determine the duration of the last P2P check
+Duration means the difference between the time specified in the record with the status "start" and the time specified in the record with the status "success" or "failure". \
+Output format: check duration
 
-##### 9) Найти всех пиров, выполнивших весь заданный блок задач и дату завершения последнего задания
-Параметры процедуры: название блока, например CPP. \
-Принадлежность к блоку определяется по содержанию в названии задания названия блока, например "CPP3" принадлежит блоку CPP. \
-Результат вывести отсортированным по дате завершения. \
-Формат вывода: ник пира, дата завершения блока CPP (т.е. последнего выполненного задания из этого блока)
+##### 9) Find all peers who have completed the whole given block of tasks and the completion date of the last task
+Procedure parameters: name of the block, for example “CPP”. \
+Whether a task belongs to a block is determined by the name of the block in the task name, e.g. "CPP3" belongs to the CPP block. \
+The result is sorted by the date of completion. \
+Output format: peer's name, date of completion of the block (i.e. the last completed task from that block)
 
-Пример вывода:
-| Peer   | Day        |
+Output example:
+| Peer   | Day        |
 |--------|------------|
-| Aboba  | 12.05.2022 |
+| Aboba  | 12.05.2022 |
 | Amogus | 17.05.2022 |
-| Sus    | 23.06.2022 |
+| Sus    | 23.06.2022 |
 
-##### 10) Определить, к какому пиру стоит идти на проверку каждому обучающемуся
-Определять нужно исходя из рекомендаций друзей пира, т.е. нужно найти пира, проверяться у которого рекомендует наибольшее число друзей. \
-Формат вывода: ник пира, ник найденного проверяющего
+##### 10) Determine which peer each student should go to for a check.
+You should determine it according to the recommendations of the peer's friends, i.e. you need to find the peer with the greatest number of friends who recommend to be checked by him. \
+Output format: peer's nickname, nickname of the checker found
 
-Пример вывода:
-| Peer   | RecomendedPeer  |
+Output example:
+| Peer   | RecommendedPeer  |
 |--------|-----------------|
-| Aboba  | Sus             |
-| Amogus | Aboba           |
-| Sus    | Aboba           |
+| Aboba  | Sus             |
+| Amogus | Aboba           |
+| Sus    | Aboba           |
 
-##### 11) Определить процент пиров, которые:
-- Приступили к блоку 1
-- Приступили к блоку 2
-- Приступили к обоим
-- Не приступили ни к одному
-Параметры процедуры: название блока 1, например CPP, название блока 2, например A. \
-Формат вывода: процент приступивших к блоку SQL, процент приступивших к блоку A, процент приступивших к обоим, процент не приступивших ни к одному
+##### 11) Determine the percentage of peers who:
+- Started block 1
+- Started block 2
+- Started both
+- Have not started any of them
+Procedure parameters: name of block 1, for example CPP, name of block 2, for example A. \
+Output format: percentage of those who started the first block, percentage of those who started the second block, percentage of those who started both blocks, percentage of those who did not started any of them
 
-Пример вывода:
+Output example:
 | StartedBlock1 | StartedBlock2 | StartedBothBlocks | DidntStartAnyBlock |
 |---------------|---------------|-------------------|--------------------|
-| 20            | 20            | 5                 | 55                 |
+| 20            | 20            | 5                 | 55                 |
 
-##### 12) Определить *N* пиров с наибольшим числом друзей
-Параметры процедуры: количество пиров *N*. \
-Результат вывести отсортированным по кол-ву друзей. \
-Формат вывода: ник пира, количество друзей
+##### 12) Determine *N* peers with the greatest number of friends
+Parameters of the procedure: the *N* number of peers . \
+The result is sorted by the number of friends. \
+Output format: peer's name, number of friends
 
-Пример вывода:
-| Peer   | FriendsCount |
+Output example:
+| Peer   | FriendsCount |
 |--------|-------------|
-| Aboba  | 8           |
-| Amogus | 15          |
-| Sus    | 0           |
+| Aboba  | 8           |
+| Amogus | 15          |
+| Sus    | 0           |
 
-##### 13) Определить процент пиров, которые когда-либо успешно проходили проверку в свой день рождения
-Также определите процент пиров, которые хоть раз проваливали проверку в свой день рождения. \
-Формат вывода: процент успехов в день рождения, процент неуспехов в день рождения
+##### 13) Determine the percentage of peers who have ever successfully passed a check on their birthday
+Also determine the percentage of peers who have ever failed a check on their birthday. \
+Output format: percentage of successes on birthday, percentage of failures on birthday
 
-Пример вывода:
+Output example:
 | SuccessfulChecks | UnsuccessfulChecks |
 |------------------|--------------------|
-| 60               | 40                 |
+| 60               | 40                 |
 
-##### 14) Определить кол-во XP, полученное в сумме каждым пиром
-Если одна задача выполнена несколько раз, полученное за нее кол-во XP равно максимальному за эту задачу. \
-Результат вывести отсортированным по кол-ву XP. \
-Формат вывода: ник пира, количество XP
+##### 14) Determine the total amount of XP gained by each peer
+If one task is performed more than once, the amount of XP received for it equals its maximum amount for that task. \
+Output the result sorted by number of XP. \
+Output format: peer's name, the number of XP
 
-Пример вывода:
-| Peer   | XP    |
+Output example:
+| Peer   | XP    |
 |--------|-------|
-| Aboba  | 8000  |
+| Aboba  | 8000  |
 | Amogus | 15000 |
-| Sus    | 400   |
+| Sus    | 400   |
 
-##### 15) Определить всех пиров, которые сдали заданные задания 1 и 2, но не сдали задание 3
-Параметры процедуры: названия заданий 1, 2 и 3. \
-Формат вывода: список пиров
+##### 15) Determine all peers who did the given tasks 1 and 2, but did not do task 3
+Procedure parameters: names of tasks 1, 2 and 3. \
+Output format: list of peers
 
-##### 16) Используя рекурсивное обобщенное табличное выражение, для каждой задачи вывести кол-во предшествующих ей задач
-То есть сколько задач нужно выполнить, исходя из условий входа, чтобы получить доступ к текущей. \
-Формат вывода: название задачи, количество предшествующих
+##### 16) Using recursive common table expression, output the number of preceding tasks for each task
+I. e. How many tasks have to be done, based on entry conditions, to get access to the current one. \
+Output format: task name, number of preceding tasks
 
-Пример вывода:
+Output example:
 | Task | PrevCount |
 |------|-----------|
-| CPP3 | 7         |
-| A1   | 9         |
-| C5   | 1         |
+| CPP3 | 7         |
+| A1   | 9         |
+| C5   | 1         |
 
-##### 17) Найти "удачные" для проверок дни. День считается "удачным", если в нем есть хотя бы *N* идущих подряд успешных проверки
-Параметры процедуры: количество идущих подряд успешных проверок *N*. \
-Временем проверки считать время начала P2P этапа. \
-Под идущими подряд успешными проверками подразумеваются успешные проверки, между которыми нет неуспешных. \
-При этом кол-во опыта за каждую из этих проверок должно быть не меньше 80% от максимального. \
-Формат вывода: список дней
+##### 17) Find "lucky" days for checks. A day is considered "lucky" if it has at least *N* consecutive successful checks
+Parameters of the procedure: the *N* number of consecutive successful checks . \
+The time of the check is the start time of the P2P step. \
+Successful consecutive checks are the checks with no unsuccessful checks in between. \
+The amount of XP for each of these checks must be at least 80% of the maximum. \
+Output format: list of days
 
-##### 18) Определить пира с наибольшим числом выполненных заданий
-Формат вывода: ник пира, число выполненных заданий
+##### 18) Determine the peer with the greatest number of completed tasks
+Output format: peer's nickname, number of completed tasks
 
-Пример вывода:
-| Peer   | XP    |
+Output example:
+| Peer   | XP    |
 |--------|-------|
-| Aboba  | 8000  |
-| Amogus | 15000 |
-| Sus    | 400   |
+| Amogus | 5 |
 
-##### 19) Определить пира с наибольшим количеством XP
-Формат вывода: ник пира, количество XP
+##### 19) Find the peer with the highest amount of XP
+Output format: peer's nickname, amount of XP
 
-Пример вывода:
-| Peer   | XP    |
+Output example:
+| Peer   | XP    |
 |--------|-------|
 | Amogus | 15000 |
 
-##### 20) Определить пира, который провел сегодня в кампусе больше всего времени
-Формат вывода: ник пира
+##### 20) Find the peer who spent the longest amount of time on campus today
+Output format: peer's nickname
 
-##### 21) Определить пиров, приходивших раньше заданного времени не менее *N* раз за всё время
-Параметры процедуры: время, количество раз *N*. \
-Формат вывода: список пиров
+##### 21) Determine the peers that came before the given time at least *N* times during the whole time
+Procedure parameters: time, *N* number of times . \
+Output format: list of peers
 
-##### 22) Определить пиров, выходивших за последние *N* дней из кампуса больше *M* раз
-Параметры процедуры: количество дней *N*, количество раз *M*. \
-Формат вывода: список пиров
+##### 22) Determine the peers who left the campus more than *M* times during the last *N* days
+Procedure parameters: *N* number of days , *M* number of times . \
+Output format: list of peers
 
-##### 23) Определить пира, который пришел сегодня последним
-Формат вывода: ник пира
+##### 23) Determine which peer was the last to come in today
+Output format: peer's nickname
 
-##### 24) Определить пиров, которые выходили вчера из кампуса больше чем на *N* минут
-Параметры процедуры: количество минут *N*. \
-Формат вывода: список пиров
+##### 24) Determine the peer that left campus yesterday for more than *N* minutes
+Parameters of the procedure: number of minutes *N*. \
+Output format: list of peers
 
-##### 25) Определить для каждого месяца процент ранних входов
-Для каждого месяца посчитать, сколько раз люди, родившиеся в этот месяц, приходили в кампус за всё время (будем называть это общим числом входов). \
-Для каждого месяца посчитать, сколько раз люди, родившиеся в этот месяц, приходили в кампус раньше 12:00 за всё время (будем называть это числом ранних входов). \
-Для каждого месяца посчитать процент ранних входов в кампус относительно общего числа входов. \
-Формат вывода: месяц, процент ранних входов
+##### 25) Determine for each month the percentage of early entries
+For each month, count how many times people born in that month came to campus during the whole time (we'll call this the total number of entries). \
+For each month, count the number of times people born in that month have come to campus before 12:00 in all time (we'll call this the number of early entries). \
+For each month, count the percentage of early entries to campus relative to the total number of entries. \
+Output format: month, percentage of early entries
 
-Пример вывода:
-| Month    | EarlyEntries |
+Output example:
+
+| Month    | EarlyEntries |
 |----------|--------------|
-| January  | 15           |
-| February | 35           |
-| March    | 45           |
+| January  | 15           |
+| February | 35           |
+| March    | 45           |
 
-## Дополнительно. Part 4. Метаданные
+## Bonus. Part 4. Metadata
 
-Для данной части задания вам нужно создать отдельную базу данных, 
-в которой создать таблицы, функции, процедуры и триггеры, необходимые для тестирования процедур.
+For this part of the task, you need to create a separate database, in which to create the tables, functions, procedures, and triggers needed to test the procedures.
 
-Создание и заполнение этой базы данных, а также написанные процедуры, внести в файл *part4.sql*.
+Add the creation and filling of this database, as well as the written procedures, to the *part4.sql* file.
 
-##### 1) Создать хранимую процедуру, которая, не уничтожая базу данных, уничтожает все те таблицы текущей базы данных, имена которых начинаются с фразы 'TableName'.
+##### 1) Create a stored procedure that, without destroying the database, destroys all those tables in the current database whose names begin with the phrase 'TableName'.
 
-##### 2) Создать хранимую процедуру с выходным параметром, которая выводит список имен и параметров всех скалярных SQL функций пользователя в текущей базе данных. Имена функций без параметров не выводить. Имена и список параметров должны выводиться в одну строку. Выходной параметр возвращает количество найденных функций.
+##### 2) Create a stored procedure with an output parameter that outputs a list of names and parameters of all scalar user's SQL functions in the current database. Do not output function names without parameters. The names and the list of parameters must be in one string. The output parameter returns the number of functions found.
 
-##### 3) Создать хранимую процедуру с выходным параметром, которая уничтожает все SQL DDL триггеры в текущей базе данных. Выходной параметр возвращает количество уничтоженных триггеров.
+##### 3) Create a stored procedure with output parameter, which destroys all SQL DDL triggers in the current database. The output parameter returns the number of destroyed triggers.
 
-##### 4) Создать хранимую процедуру с входным параметром, которая выводит имена и описания типа объектов (только хранимых процедур и скалярных функций), в тексте которых на языке SQL встречается строка, задаваемая параметром процедуры.
+##### 4) Create a stored procedure with an input parameter that outputs names and descriptions of object types (only stored procedures and scalar functions) that have a string specified by the procedure parameter.
