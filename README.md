@@ -191,6 +191,9 @@ This new data needs to be added to this script as well.
 
 If *csv* files were used to add data to the tables, they must also be uploaded to the GIT repository.
 
+*All tasks must be named in the format of names for School 21, for example A5_s21_memory. \
+In the future, Whether a task belongs to a block will be determined by the name of the block in the task name, e.g. "CPP3_SmartCalc_v2.0" belongs to the CPP block. \*
+
 ## Part 2. Changing data
 
 Create a *part2.sql* script, in which, in addition to what is described below, add test queries/calls for each item.
@@ -294,7 +297,6 @@ Output format: check duration
 
 ##### 9) Find all peers who have completed the whole given block of tasks and the completion date of the last task
 Procedure parameters: name of the block, for example “CPP”. \
-Whether a task belongs to a block is determined by the name of the block in the task name, e.g. "CPP3" belongs to the CPP block. \
 The result is sorted by the date of completion. \
 Output format: peer's name, date of completion of the block (i.e. the last completed task from that block)
 
@@ -321,6 +323,7 @@ Output example:
 - Started block 2
 - Started both
 - Have not started any of them
+
 Procedure parameters: name of block 1, for example CPP, name of block 2, for example A. \
 Output format: percentage of those who started the first block, percentage of those who started the second block, percentage of those who started both blocks, percentage of those who did not started any of them
 
