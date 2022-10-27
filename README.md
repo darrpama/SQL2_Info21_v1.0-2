@@ -448,3 +448,5 @@ Add the creation and filling of this database, as well as the written procedures
 ##### 3) Create a stored procedure with output parameter, which destroys all SQL DDL triggers in the current database. The output parameter returns the number of destroyed triggers.
 
 ##### 4) Create a stored procedure with an input parameter that outputs names and descriptions of object types (only stored procedures and scalar functions) that have a string specified by the procedure parameter.
+
+💡 [Tap here](https://forms.yandex.ru/u/635ab43e2530c22087ef3597/) **to leave your feedback on the project**. Pedago Team really tries to make your educational experience better.
