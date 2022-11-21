@@ -87,6 +87,7 @@ Create an enumeration type for the check status that contains the following valu
 - Time
 
 Each P2P check consists of 2 table records: the first has a start status, the second has a success or failure status. \
+The table cannot contain more than one incomplete P2P check related to a specific task, a peer and a checking peer. \
 Each P2P check (i.e. both records of which it consists) refers to the check in the Checks table to which it belongs. 
 
 #### Verter Table
@@ -107,7 +108,7 @@ Each check by Verter (i.e. both records of which it consists) refers to the chec
 - Name of the task
 - Check date
 
-Describes the check of the task as a whole. The check necessarily includes a P2P step and possibly a Verter step.
+Describes the check of the task as a whole. The check necessarily includes a **one** P2P step and possibly a Verter step.
 For simplicity, assume that peer to peer and autotests related to the same check always happen on the same day.
 
 The check is considered successful if the corresponding P2P step is successful and the Verter step is successful, or if there is no Verter step.
@@ -202,7 +203,7 @@ Create a *part2.sql* script, in which, in addition to what is described below, a
 Parameters: nickname of the person being checked, checker's nickname, task name, [P2P check status]( #check-status), time. \
 If the status is "start", add a record in the Checks table (use today's date). \
 Add a record in the P2P table. \
-If the status is "start", specify the record just added as a check, otherwise specify the check with the latest (by time) unfinished P2P step.
+If the status is "start", specify the record just added as a check, otherwise specify the check with the unfinished P2P step.
 
 ##### 2) Write a procedure for adding checking by Verter
 Parameters: nickname of the person being checked, task name, [Verter check status](#check-status), time. \
@@ -303,9 +304,9 @@ Output format: peer's name, date of completion of the block (i.e. the last compl
 Output example:
 | Peer   | Day        |
 |--------|------------|
-| Aboba  | 12.05.2022 |
-| Amogus | 17.05.2022 |
 | Sus    | 23.06.2022 |
+| Amogus | 17.05.2022 |
+| Aboba  | 12.05.2022 |
 
 ##### 10) Determine which peer each student should go to for a check.
 You should determine it according to the recommendations of the peer's friends, i.e. you need to find the peer with the greatest number of friends who recommend to be checked by him. \
@@ -340,8 +341,8 @@ Output format: peer's name, number of friends
 Output example:
 | Peer   | FriendsCount |
 |--------|-------------|
-| Aboba  | 8           |
 | Amogus | 15          |
+| Aboba  | 8           |
 | Sus    | 0           |
 
 ##### 13) Determine the percentage of peers who have ever successfully passed a check on their birthday
@@ -361,8 +362,8 @@ Output format: peer's name, the number of XP
 Output example:
 | Peer   | XP    |
 |--------|-------|
-| Aboba  | 8000  |
 | Amogus | 15000 |
+| Aboba  | 8000  |
 | Sus    | 400   |
 
 ##### 15) Determine all peers who did the given tasks 1 and 2, but did not do task 3
@@ -445,7 +446,7 @@ Add the creation and filling of this database, as well as the written procedures
 
 ##### 2) Create a stored procedure with an output parameter that outputs a list of names and parameters of all scalar user's SQL functions in the current database. Do not output function names without parameters. The names and the list of parameters must be in one string. The output parameter returns the number of functions found.
 
-##### 3) Create a stored procedure with output parameter, which destroys all SQL DDL triggers in the current database. The output parameter returns the number of destroyed triggers.
+##### 3) Create a stored procedure with output parameter, which destroys all SQL DML triggers in the current database. The output parameter returns the number of destroyed triggers.
 
 ##### 4) Create a stored procedure with an input parameter that outputs names and descriptions of object types (only stored procedures and scalar functions) that have a string specified by the procedure parameter.
 
