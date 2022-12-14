@@ -320,13 +320,15 @@ Output example:
 | Sus    | Aboba           |
 
 ##### 11) Determine the percentage of peers who:
-- Started block 1
-- Started block 2
+- Started only block 1
+- Started only block 2
 - Started both
 - Have not started any of them
 
-Procedure parameters: name of block 1, for example CPP, name of block 2, for example A. \
-Output format: percentage of those who started the first block, percentage of those who started the second block, percentage of those who started both blocks, percentage of those who did not started any of them
+A peer is considered to have started a block if he has at least one check of any task from this block (according to the Checks table)
+
+Procedure parameters: name of block 1, for example SQL, name of block 2, for example A. \
+Output format: percentage of those who started only the first block, percentage of those who started only the second block, percentage of those who started both blocks, percentage of those who did not started any of them
 
 Output example:
 | StartedBlock1 | StartedBlock2 | StartedBothBlocks | DidntStartAnyBlock |
