@@ -1,4 +1,6 @@
-CREATE PROCEDURE import_from_csv(table_name text, global_path text, delimiter text)
+-- TRUNCATE ... CASCADE;    -- delete data from some table to import
+
+CREATE OR REPLACE PROCEDURE import_from_csv(table_name text, global_path text, delimiter text)
 AS
 $$
 BEGIN
@@ -6,4 +8,4 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CALL import_from_csv('', '', '');
+-- CALL import_from_csv('', '', '');

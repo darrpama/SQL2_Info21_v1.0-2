@@ -1,4 +1,4 @@
-CREATE PROCEDURE export_to_csv(table_name text, global_path text, delimiter text)
+CREATE OR REPLACE PROCEDURE export_to_csv(table_name text, global_path text, delimiter text)
 AS
 $$
 BEGIN
