@@ -1,7 +1,7 @@
 ---------------------------------------------------------------
 -- PEERS table
 ---------------------------------------------------------------
-CREATE TABLE peers
+CREATE TABLE IF NOT EXISTS peers
 (
     nickname VARCHAR PRIMARY KEY,
     birthday DATE NOT NULL
@@ -13,53 +13,12 @@ CREATE TABLE peers
 -- Чтобы получить доступ к заданию, нужно выполнить задание, являющееся его условием входа.
 -- Для упрощения будем считать, что у каждого задания всего одно условие входа.
 -- В таблице должно быть одно задание, у которого нет условия входа (т.е. поле ParentTask равно null).
-CREATE TABLE tasks
+CREATE TABLE IF NOT EXISTS tasks
 (
     title VARCHAR PRIMARY KEY,
     parent_task VARCHAR,
     max_xp BIGINT NOT NULL,
     CONSTRAINT fk_tasks_tasks FOREIGN KEY (parent_task) REFERENCES tasks(title)
-);
-
-
----------------------------------------------------------------
--- ENUMS
----------------------------------------------------------------
-CREATE TYPE check_state
-    AS ENUM ('start', 'success', 'failure');
-
-
----------------------------------------------------------------
--- P2P table
----------------------------------------------------------------
--- Каждая P2P проверка состоит из 2-х записей в таблице: первая имеет статус начало, вторая - успех или неуспех.
--- В таблице не может быть больше одной незавершенной P2P проверки, относящейся к конкретному заданию, пиру и проверяющему.
--- Каждая P2P проверка (т.е. обе записи, из которых она состоит) ссылается на проверку в таблице Checks, к которой она относится.
-CREATE TABLE p2p
-(
-    id BIGINT PRIMARY KEY,
-    check_id BIGINT NOT NULL,
-    checking_peer VARCHAR NOT NULL,
-    state check_state NOT NULL,
-    check_time TIME NOT NULL,
-    CONSTRAINT fk_p2p_checks FOREIGN KEY (check_id) REFERENCES checks(id),
-    CONSTRAINT fk_p2p_peers FOREIGN KEY (checking_peer) REFERENCES peers(nickname)
-);
-
-
----------------------------------------------------------------
--- VERTER table
----------------------------------------------------------------
--- Каждая проверка Verter'ом состоит из 2-х записей в таблице: первая имеет статус начало, вторая - успех или неуспех.
--- Каждая проверка Verter'ом (т.е. обе записи, из которых она состоит) ссылается на проверку в таблице Checks, к которой она относится.
--- Проверка Verter'ом может ссылаться только на те проверки в таблице Checks, которые уже включают в себя успешную P2P проверку.
-CREATE TABLE verter
-(
-    id BIGINT PRIMARY KEY,
-    check_id BIGINT NOT NULL,
-    state check_state NOT NULL,
-    check_time TIME NOT NULL,
-    CONSTRAINT fk_verter_checks FOREIGN KEY (check_id) REFERENCES checks(id)
 );
 
 
@@ -80,7 +39,7 @@ CREATE TABLE verter
 --     Проверки, в которых ещё не завершился этап P2P,
 --     или этап P2P успешен, но ещё не завершился этап Verter,
 --     не относятся ни к успешным, ни к неуспешным.
-CREATE TABLE checks
+CREATE TABLE IF NOT EXISTS checks
 (
     id BIGINT PRIMARY KEY,
     peer VARCHAR NOT NULL,
@@ -88,6 +47,46 @@ CREATE TABLE checks
     check_date DATE NOT NULL,
     CONSTRAINT fk_checks_peers FOREIGN KEY (peer) REFERENCES peers(nickname),
     CONSTRAINT fk_checks_tasks FOREIGN KEY (task) REFERENCES tasks(title)
+);
+
+
+---------------------------------------------------------------
+-- ENUMS
+---------------------------------------------------------------
+CREATE TYPE check_state
+    AS ENUM ('start', 'success', 'failure');
+
+---------------------------------------------------------------
+-- P2P table
+---------------------------------------------------------------
+-- Каждая P2P проверка состоит из 2-х записей в таблице: первая имеет статус начало, вторая - успех или неуспех.
+-- В таблице не может быть больше одной незавершенной P2P проверки, относящейся к конкретному заданию, пиру и проверяющему.
+-- Каждая P2P проверка (т.е. обе записи, из которых она состоит) ссылается на проверку в таблице Checks, к которой она относится.
+CREATE TABLE IF NOT EXISTS p2p
+(
+    id BIGINT PRIMARY KEY,
+    check_id BIGINT NOT NULL,
+    checking_peer VARCHAR NOT NULL,
+    state check_state NOT NULL,
+    check_time TIME NOT NULL,
+    CONSTRAINT fk_p2p_checks FOREIGN KEY (check_id) REFERENCES checks(id),
+    CONSTRAINT fk_p2p_peers FOREIGN KEY (checking_peer) REFERENCES peers(nickname)
+);
+
+
+---------------------------------------------------------------
+-- VERTER table
+---------------------------------------------------------------
+-- Каждая проверка Verter'ом состоит из 2-х записей в таблице: первая имеет статус начало, вторая - успех или неуспех.
+-- Каждая проверка Verter'ом (т.е. обе записи, из которых она состоит) ссылается на проверку в таблице Checks, к которой она относится.
+-- Проверка Verter'ом может ссылаться только на те проверки в таблице Checks, которые уже включают в себя успешную P2P проверку.
+CREATE TABLE IF NOT EXISTS verter
+(
+    id BIGINT PRIMARY KEY,
+    check_id BIGINT NOT NULL,
+    state check_state NOT NULL,
+    check_time TIME NOT NULL,
+    CONSTRAINT fk_verter_checks FOREIGN KEY (check_id) REFERENCES checks(id)
 );
 
 
@@ -100,7 +99,7 @@ CREATE TABLE checks
 --      и кол-во переданных пир поинтов,
 --      другими словами,
 --          количество P2P проверок указанного проверяемого пира, данным проверяющим.
-CREATE TABLE transferred_points
+CREATE TABLE IF NOT EXISTS transferred_points
 (
     id BIGINT PRIMARY KEY,
     checking_peer VARCHAR NOT NULL,
@@ -117,7 +116,7 @@ CREATE TABLE transferred_points
 -- Дружба взаимная, т.е.
 --      первый пир является другом второго,
 --      а второй -- другом первого.
-CREATE TABLE friends
+CREATE TABLE IF NOT EXISTS friends
 (
     id BIGINT PRIMARY KEY,
     peer1 VARCHAR NOT NULL,
@@ -133,7 +132,7 @@ CREATE TABLE friends
 -- Каждому может понравиться, как проходила P2P проверка у того или иного пира.
 -- Пир, указанный в поле Peer, рекомендует проходить P2P проверку у пира из поля RecommendedPeer.
 -- Каждый пир может рекомендовать как ни одного, так и сразу несколько проверяющих.
-CREATE TABLE recommendations
+CREATE TABLE IF NOT EXISTS recommendations
 (
     id BIGINT PRIMARY KEY,
     peer VARCHAR NOT NULL,
@@ -150,20 +149,13 @@ CREATE TABLE recommendations
 --      получает какое-то количество XP, отображаемое в этой таблице.
 -- Количество XP не может превышать максимальное доступное для проверяемой задачи.
 -- Первое поле этой таблицы может ссылаться только на успешные проверки.
-CREATE TABLE xp
+CREATE TABLE IF NOT EXISTS xp
 (
     id BIGINT PRIMARY KEY,
     check_id BIGINT NOT NULL,
     xp_amount BIGINT NOT NULL,
     CONSTRAINT fk_xp_check FOREIGN KEY (check_id) REFERENCES checks(id)
 );
-
-
----------------------------------------------------------------
--- ENUM time_tracking_state
----------------------------------------------------------------
-CREATE TYPE time_tracking_state
-    AS ENUM (1, 2);
 
 
 ---------------------------------------------------------------
@@ -174,12 +166,12 @@ CREATE TYPE time_tracking_state
 -- когда покидает - с состоянием 2.
 -- В заданиях, относящихся к этой таблице, под действием "выходить" подразумеваются все покидания кампуса за день, кроме последнего.
 -- В течение одного дня должно быть одинаковое количество записей с состоянием 1 и состоянием 2 для каждого пира.
-CREATE TABLE time_tracking
+CREATE TABLE IF NOT EXISTS time_tracking
 (
     id BIGINT PRIMARY KEY,
     peer VARCHAR NOT NULL,
     "date" DATE NOT NULL,
     "time" TIME NOT NULL,
-    state time_tracking_state NOT NULL,
+    state SMALLINT NOT NULL CHECK(state in (1,2)),
     CONSTRAINT fk_time_tracking_peers FOREIGN KEY (peer) REFERENCES peers(nickname)
 );
