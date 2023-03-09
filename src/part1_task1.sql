@@ -1,8 +1,7 @@
 ---------------------------------------------------------------
 -- PEERS table
 ---------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS peers
-(
+CREATE TABLE IF NOT EXISTS peers (
     nickname VARCHAR PRIMARY KEY,
     birthday DATE NOT NULL
 );
@@ -13,11 +12,10 @@ CREATE TABLE IF NOT EXISTS peers
 -- Чтобы получить доступ к заданию, нужно выполнить задание, являющееся его условием входа.
 -- Для упрощения будем считать, что у каждого задания всего одно условие входа.
 -- В таблице должно быть одно задание, у которого нет условия входа (т.е. поле ParentTask равно null).
-CREATE TABLE IF NOT EXISTS tasks
-(
-    title VARCHAR PRIMARY KEY,
-    parent_task VARCHAR,
-    max_xp BIGINT NOT NULL,
+CREATE TABLE IF NOT EXISTS tasks (
+    title       VARCHAR PRIMARY KEY,
+    parent_task VARCHAR CHECK ( parent_task NOT LIKE title ),
+    max_xp      BIGINT NOT NULL CHECK ( max_xp > 0 ),
     CONSTRAINT fk_tasks_tasks FOREIGN KEY (parent_task) REFERENCES tasks(title)
 );
 
@@ -39,8 +37,7 @@ CREATE TABLE IF NOT EXISTS tasks
 --     Проверки, в которых ещё не завершился этап P2P,
 --     или этап P2P успешен, но ещё не завершился этап Verter,
 --     не относятся ни к успешным, ни к неуспешным.
-CREATE TABLE IF NOT EXISTS checks
-(
+CREATE TABLE IF NOT EXISTS checks (
     id BIGINT PRIMARY KEY,
     peer VARCHAR NOT NULL,
     task VARCHAR NOT NULL,
