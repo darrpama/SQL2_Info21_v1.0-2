@@ -1,4 +1,4 @@
-id,check_id,checking_peer,check_state,check_time
+id,check_id,checking_peer,state,check_time
 1,1,myregree,start,13:00:00
 2,1,myregree,failure,13:30:00
 3,2,woodensa,start,14:00:00
@@ -65,9 +65,7 @@ id,check_id,checking_peer,check_state,check_time
 64,32,woodensa,success,19:45:00
 65,33,chesterh,start,20:00:00
 66,33,chesterh,success,20:45:00
-65,34,vindicat,start,20:00:00
-66,34,vindicat,success,20:45:00
-65,35,cindabru,start,20:00:00
-66,35,cindabru,success,20:45:00
-65,36,shelbyne,start,20:00:00
-66,36,shelbyne,success,20:45:00
+67,34,vindicat,start,20:00:00
+68,34,vindicat,success,20:45:00
+69,35,cindabru,start,20:00:00
+70,35,cindabru,success,20:45:00
