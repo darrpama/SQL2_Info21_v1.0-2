@@ -47,6 +47,8 @@ CALL import_from_csv ('recommendations', '/Users/darrpama/projects/sql/SQL2_Info
 TRUNCATE xp CASCADE;
 CALL import_from_csv ('xp', '/Users/darrpama/projects/sql/SQL2_Info21_v1.0-0/src/csv/09-init_xp.csv', ',');
 
+-- SELECT check_id, max_xp FROM checks JOIN verter v on checks.id = v.check_id join tasks t on checks.task = t.title WHERE state != 'start' and state != 'failure';
+
 TRUNCATE time_tracking CASCADE;
 CALL import_from_csv ('time_tracking', '/Users/darrpama/projects/sql/SQL2_Info21_v1.0-0/src/csv/10-init_time_tracking.csv', ',');
 
