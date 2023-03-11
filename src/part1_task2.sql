@@ -32,7 +32,8 @@ CALL import_from_csv ('p2p', '/Users/darrpama/projects/sql/SQL2_Info21_v1.0-0/sr
 TRUNCATE verter CASCADE;
 CALL import_from_csv ('verter', '/Users/darrpama/projects/sql/SQL2_Info21_v1.0-0/src/csv/05-init_verter.csv', ',');
 
--- SELECT * FROM checks JOIN p2p ON checks.id = p2p.check_id WHERE state != 'failure' AND  state != 'start';
+-- SELECT checking_peer, peer FROM checks JOIN p2p ON checks.id = p2p.check_id WHERE state != 'start' and state != 'failure' ORDER BY checking_peer, peer;
+-- SELECT checking_peer, peer FROM checks JOIN p2p ON checks.id = p2p.check_id WHERE state != 'start' ORDER BY checking_peer, peer;
 
 TRUNCATE transferred_points CASCADE;
 CALL import_from_csv ('transferred_points', '/Users/darrpama/projects/sql/SQL2_Info21_v1.0-0/src/csv/06-init_transferred_points.csv', ',');
