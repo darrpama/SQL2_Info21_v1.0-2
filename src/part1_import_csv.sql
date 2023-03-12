@@ -1,6 +1,6 @@
 -- TRUNCATE ... CASCADE;    -- delete data from some table to import
 
-CREATE OR REPLACE PROCEDURE import_from_csv(table_name text, global_path text, delimiter text)
+CREATE OR REPLACE PROCEDURE pr_import_from_csv(table_name text, global_path text, delimiter text)
 AS
 $$
 BEGIN
