@@ -109,11 +109,8 @@ CREATE TABLE IF NOT EXISTS friends (
     peer1   VARCHAR NOT NULL CHECK ( peer1 NOT LIKE  peer2),
     peer2   VARCHAR NOT NULL CHECK ( peer2 NOT LIKE peer1 ),
     CONSTRAINT fk_friends_peers_peer1 FOREIGN KEY (peer1) REFERENCES peers(nickname),
-    CONSTRAINT fk_friends_peers_peer2 FOREIGN KEY (peer2) REFERENCES peers(nickname)
+    CONSTRAINT fk_friends_peers_peer2 FOREIGN KEY (peer2) REFERENCES peers(nickname),
 );
--- make unique combination
-CREATE UNIQUE INDEX ifriends ON friends(greatest(peer1, peer2), least(peer1, peer2));
-
 
 -- RECOMMENDATIONS table
 ---------------------------------------------------------------
@@ -132,8 +129,7 @@ CREATE TABLE IF NOT EXISTS recommendations
 
 -- XP table
 ---------------------------------------------------------------
--- За каждую успешную проверку пир, выполнивший задание,
---      получает какое-то количество XP, отображаемое в этой таблице.
+-- За каждую успешную проверку пир, выполнивший задание, получает какое-то количество XP, отображаемое в этой таблице.
 -- Количество XP не может превышать максимальное доступное для проверяемой задачи.
 -- Первое поле этой таблицы может ссылаться только на успешные проверки.
 CREATE TABLE IF NOT EXISTS xp
