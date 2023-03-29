@@ -41,3 +41,10 @@ $xp$ LANGUAGE plpgsql;
 CREATE TRIGGER trg_xp_max
     BEFORE INSERT OR UPDATE ON xp
     FOR EACH ROW EXECUTE PROCEDURE fnc_trg_xp_max();
+
+-- TEST CASES
+-- check is not isset  should FAIL
+-- p2p check is not isset  should FAIL
+-- p2p check has only started  should FAIL
+-- Verter check has only started  should FAIL
+-- p2p and Verter checks isset and has success but xp greater  should FAIL
