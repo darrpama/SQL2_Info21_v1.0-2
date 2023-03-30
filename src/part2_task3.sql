@@ -5,7 +5,11 @@ BEGIN
     IF NEW.state = 'start' THEN
     UPDATE transferred_points
     SET points_amount = transferred_points.points_amount + 1,
-    FROM ...
+    FROM (
+        SELECT checking_peer, peer FROM p2p
+        JOIN checks ON p2p.check_id = checks.id
+        WHERE state = 'start' AND NEW."check_id" = checks.id
+        )
     WHERE ...
     ELSE
         RETURN NULL;
@@ -13,7 +17,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-SELECT DISTINCT checking_peer, peer FROM p2p JOIN checks ON p2p.check_id = 34;
+SELECT checking_peer, peer FROM p2p
+JOIN checks ON p2p.check_id = checks.id
+WHERE state = 'start' AND checks.id = 4;
 
 
 CREATE TRIGGER  trg_transfer_p2p_point
