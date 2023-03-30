@@ -7,7 +7,7 @@ CREATE OR REPLACE FUNCTION fnc_trg_xp_max() RETURNS TRIGGER AS $xp$
         -- Количество XP не превышает максимальное доступное для проверяемой задачи
         SELECT max_xp INTO xpAmount FROM tasks
             INNER JOIN checks c on tasks.title LIKE c.task
-            INNER JOIN xp x on c.id = x.check_id;
+        WHERE c.id = NEW.check_id;
         IF (xpAmount > NEW.xp_amount)
         THEN
             RAISE EXCEPTION 'Xp [id:%] is greater than it should be',
@@ -30,6 +30,7 @@ CREATE OR REPLACE FUNCTION fnc_trg_xp_max() RETURNS TRIGGER AS $xp$
             RAISE EXCEPTION 'Verter check [id:%] is not success',
             NEW.check_id;
         END IF;
+
         -- Проверка считается неуспешной, хоть один из этапов неуспешен.
         --     Проверки, в которых ещё не завершился этап P2P,
         --     или этап P2P успешен, но ещё не завершился этап Verter,
@@ -42,9 +43,20 @@ CREATE TRIGGER trg_xp_max
     BEFORE INSERT OR UPDATE ON xp
     FOR EACH ROW EXECUTE PROCEDURE fnc_trg_xp_max();
 
+
+-------------------------------------------------------------------------------------------
 -- TEST CASES
--- check is not isset  should FAIL
--- p2p check is not isset  should FAIL
--- p2p check has only started  should FAIL
--- Verter check has only started  should FAIL
--- p2p and Verter checks isset and has success but xp greater  should FAIL
+-------------------------------------------------------------------------------------------
+--  check is not isset  should FAIL
+INSERT INTO xp(check_id, xp_amount) VALUES (1, 1000);
+
+--  p2p check is not isset  should FAIL
+INSERT INTO checks(peer, task, check_date) VALUES ('myregree', 'C2_SimpleBashUtils', '2023-03-30 22:25');
+INSERT INTO xp(check_id, xp_amount) VALUES (2, 1000);
+
+--  p2p check has only started  should FAIL
+INSERT INTO xp(check_id, xp_amount) VALUES (2, 1000);
+
+--  Verter check has only started  should FAIL
+
+--  p2p and Verter checks isset and has success but xp greater  should FAIL
