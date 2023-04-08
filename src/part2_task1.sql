@@ -1,8 +1,13 @@
-CREATE OR REPLACE PROCEDURE pr_add_p2p_check(new_checked_peer text, new_checking_peer text, new_task_title text, new_state check_state, new_check_time time)
-AS
+CREATE OR REPLACE PROCEDURE pr_add_p2p_check(
+    new_checked_peer  text,
+    new_checking_peer text,
+    new_task_title    text,
+    new_state         check_state,
+    new_check_time    time
+) AS
 $$
 DECLARE
-    new_check_id BIGSERIAL := 0;
+    new_check_id BIGINT := 0;
 BEGIN
     IF new_state = 'start'
     THEN
@@ -10,14 +15,35 @@ BEGIN
         INSERT INTO checks (id, peer, task, check_date)
         VALUES (new_check_id, new_checked_peer, new_task_title, (SELECT CURRENT_DATE));
     ELSE
-        new_check_id = (SELECT checks.id FROM p2p
-                    INNER JOIN checks ON checks.id = p2p.check_id
-                    WHERE peer = $1
-                    AND p2p.checking_peer = $2
-                    AND task = $3
-                    ORDER BY checks.id DESC LIMIT 1);
+        new_check_id = (
+            SELECT checks.id FROM p2p
+                INNER JOIN checks ON checks.id = p2p.check_id
+            WHERE peer = $1
+                AND p2p.checking_peer = $2
+                AND task = $3
+            ORDER BY checks.id DESC
+            LIMIT 1
+        );
     END IF;
+
     INSERT INTO p2p (check_id, checking_peer, state, check_time)
     VALUES (new_check_id, new_checking_peer, new_state, new_check_time);
 END;
 $$ LANGUAGE plpgsql;
+
+-- Test
+CALL pr_add_p2p_check(
+    'woodensa',
+    'chastity',
+    'C3_s21_string+',
+    'start',
+    '2023-04-08 17:22'
+);
+
+CALL pr_add_p2p_check(
+    'woodensa',
+    'chastity',
+    'C3_s21_string+',
+    'success',
+    '2023-04-08 18:22'
+);
