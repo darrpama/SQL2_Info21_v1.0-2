@@ -12,7 +12,9 @@ BEGIN
             (SELECT DISTINCT peer, task,
                  FIRST_VALUE(check_date) OVER (PARTITION BY peer, task ORDER BY check_date) as date
              FROM (SELECT * FROM checks WHERE task SIMILAR TO CONCAT(block, '[0-9]%')) as c
-                   JOIN p2p p ON c.id = p.check_id WHERE state = 'success')
+                   LEFT JOIN p2p p ON c.id = p.check_id
+                   LEFT JOIN verter v ON c.id = v.check_id
+            WHERE p.state = 'success' AND (v.state IS NULL OR v.state = 'success'))
         SELECT peer, MAX(date) as date FROM successful_checks GROUP BY peer
         HAVING COUNT(task) = (SELECT COUNT(title) FROM tasks WHERE title SIMILAR TO CONCAT(block, '[0-9]%'));
 END;
