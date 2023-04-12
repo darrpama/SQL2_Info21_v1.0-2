@@ -10,7 +10,7 @@ BEGIN
             LEFT JOIN p2p p ON checks.id = p.check_id
             LEFT JOIN verter v ON checks.id = v.check_id
         WHERE p.state = 'success' AND
-              v.state IS NULL OR v.state = 'success'
+              (v.state IS NULL OR v.state = 'success')
         GROUP BY peer
         HAVING task1 = ANY(ARRAY_AGG(task))
             AND task2 = ANY(ARRAY_AGG(task))
