@@ -11,10 +11,10 @@ BEGIN
              b3 AS ((SELECT peer FROM b1) INTERSECT (SELECT peer FROM b2)),
              b4 AS ((SELECT nickname AS peer FROM peers) EXCEPT ((SELECT peer FROM b1) UNION (SELECT peer FROM b2)))
         SELECT * FROM
-            (SELECT (COUNT(peer) * 100.0 / cnt)::INTEGER FROM b1) AS b1perc JOIN
-            (SELECT (COUNT(peer) * 100.0 / cnt)::INTEGER FROM b2) AS b2perc ON TRUE JOIN
-            (SELECT (COUNT(peer) * 100.0 / cnt)::INTEGER FROM b3) AS b3perc ON TRUE JOIN
-            (SELECT (COUNT(peer) * 100.0 / cnt)::INTEGER FROM b4) AS b4perc ON TRUE;
+            (SELECT (COUNT(peer) * 100.0 / cnt)::INTEGER FROM b1) AS b1perc CROSS JOIN
+            (SELECT (COUNT(peer) * 100.0 / cnt)::INTEGER FROM b2) AS b2perc CROSS JOIN
+            (SELECT (COUNT(peer) * 100.0 / cnt)::INTEGER FROM b3) AS b3perc CROSS JOIN
+            (SELECT (COUNT(peer) * 100.0 / cnt)::INTEGER FROM b4) AS b4perc;
 END;
 $$ LANGUAGE plpgsql;
 
