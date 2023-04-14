@@ -1,5 +1,3 @@
-SELECT * FROM checks;
-
 CREATE OR REPLACE FUNCTION fn_percent_by_blocks(block1 VARCHAR, block2 VARCHAR)
     RETURNS TABLE (StartedBlock1 INTEGER, StartedBlock2 INTEGER, StartedBothBlocks INTEGER, DidntStartAnyBlock INTEGER)
 AS $$
