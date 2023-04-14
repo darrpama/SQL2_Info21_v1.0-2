@@ -32,7 +32,7 @@ AS $$
             INSERT INTO p2p (check_id, checking_peer, state, check_time)
             VALUES (new_check_id, new_checking_peer, new_state, new_check_time);
         END IF;
-    END;
+    END
 $$ LANGUAGE plpgsql;
 
 CALL pr_add_p2p_check('darrpama', 'myregree', 'C7_SmartCalc_v1.0', 'start'::check_state, '15:30:01')
