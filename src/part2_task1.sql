@@ -1,4 +1,3 @@
-DROP PROCEDURE IF EXISTS  pr_add_p2p_check cascade;
 CREATE OR REPLACE PROCEDURE pr_add_p2p_check(new_checked_peer text, new_checking_peer text, new_task_title text, new_state check_state, new_check_time time)
 AS $$
     DECLARE
@@ -14,11 +13,11 @@ AS $$
             THEN
                 RAISE EXCEPTION 'Exception';
             ELSE
-                SELECT @new_check_id = (SELECT max(id) + 1 FROM checks);
+                new_check_id = (SELECT max(id) + 1 FROM checks);
                 INSERT INTO checks (id, peer, task, check_date)
                 VALUES (new_check_id, new_checked_peer, new_task_title, now());
 
-                SELECT @new_p2p_id = (SELECT max(id) + 1 FROM p2p);
+                new_p2p_id = (SELECT max(id) + 1 FROM p2p);
                 INSERT INTO p2p (id, check_id, checking_peer, state, check_time)
                 VALUES (new_p2p_id, new_check_id - 1, new_checking_peer, new_state, new_check_time);
             END IF;
