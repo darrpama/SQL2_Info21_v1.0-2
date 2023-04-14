@@ -1,28 +1,27 @@
 CREATE OR REPLACE FUNCTION fn_mostly_checked_tasks_by_days ()
     RETURNS TABLE (
-        Day date,
-        Task varchar
+        Day DATE,
+        Task VARCHAR
     )
-    language plpgsql
+    LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
         WITH day_max AS (
             SELECT DISTINCT ON (t.check_date) t.check_date, tasks_count
             FROM (
-                SELECT count(c2.task) as tasks_count, check_date
-                FROM checks as c2
+                SELECT count(c2.task) AS tasks_count, check_date
+                FROM checks AS c2
                 GROUP BY c2.task, c2.check_date
-            ) as t
+            ) AS t
             ORDER BY t.check_date, tasks_count DESC
         )
-
         SELECT
-            t1.check_date as Day,
-            t1.task as Task
+            t1.check_date AS Day,
+            t1.task AS Task
         FROM (
-            SELECT c1.task, count(c1.task) as tasks_count, c1.check_date
-            FROM checks as c1
+            SELECT c1.task, count(c1.task) AS tasks_count, c1.check_date
+            FROM checks AS c1
             GROUP BY c1.task, c1.check_date
         ) t1
         INNER JOIN day_max t2
