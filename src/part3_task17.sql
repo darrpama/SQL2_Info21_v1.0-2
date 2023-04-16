@@ -5,13 +5,13 @@ AS $$
 BEGIN
     RETURN QUERY
         WITH agg AS
-            (SELECT time, TO_CHAR(birthday, 'Month') as month
+            (SELECT time, TO_CHAR(birthday, 'Month') AS month
             FROM time_tracking LEFT JOIN peers p ON p.nickname = time_tracking.peer
             WHERE state = 1),
-             gs AS (SELECT TO_CHAR(generate_series('2018-01-31', '2018-12-31', interval '1 month'), 'Month') as month)
+             gs AS (SELECT TO_CHAR(generate_series('2018-01-31', '2018-12-31', INTERVAL '1 month'), 'Month') AS month)
         SELECT gs.month, coalesce(c2 * 100 / c1, 0) FROM gs LEFT JOIN
-            (SELECT month, COUNT(month) as c1 FROM agg GROUP BY month) a on a.month = gs.month LEFT JOIN
-            (SELECT month, COUNT(month) as c2 FROM agg WHERE time < '12:00:00' GROUP BY month) b on b.month = gs.month;
+            (SELECT month, COUNT(month) AS c1 FROM agg GROUP BY month) a ON a.month = gs.month LEFT JOIN
+            (SELECT month, COUNT(month) AS c2 FROM agg WHERE time < '12:00:00' GROUP BY month) b ON b.month = gs.month;
 END;
 $$ LANGUAGE plpgsql;
 
