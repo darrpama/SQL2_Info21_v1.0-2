@@ -12,4 +12,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-SELECT * FROM fn_early_peers('12:30:00', 2);
+SELECT * FROM fn_early_peers('12:30:00', 1);
+SELECT * FROM fn_early_peers('12:30:01', 1);
+SELECT * FROM fn_early_peers('14:30:00', 2);
