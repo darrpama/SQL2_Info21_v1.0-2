@@ -55,7 +55,7 @@ SELECT * FROM p2p WHERE checking_peer = 'myregree';
 CALL pr_add_p2p_check('darrpama', 'myregree', 'C7_SmartCalc_v1.0', 'start'::check_state, '15:30:01');
 SELECT * FROM p2p WHERE checking_peer = 'myregree';
 -- Вызов команды повторно вызовет exception
--- CALL pr_add_p2p_check('darrpama', 'myregree', 'C7_SmartCalc_v1.0', 'start'::check_state, '15:30:01');
+CALL pr_add_p2p_check('darrpama', 'myregree', 'C7_SmartCalc_v1.0', 'start'::check_state, '15:30:01');
 DELETE FROM p2p WHERE checking_peer = 'myregree' AND state = 'start';
 
 
@@ -75,7 +75,7 @@ DECLARE
 BEGIN
     IF (new_state = 'start')
     THEN
-        IF ((SELECT max(p2p.time) FROM p2p
+        IF ((SELECT max(p2p.check_time) FROM p2p
              JOIN checks c on p2p.check_id = c.id
              WHERE c.peer = new_checked_peer
                AND c.task = new_task_title
@@ -83,8 +83,7 @@ BEGIN
         THEN
             RAISE EXCEPTION 'P2P must be success';
         ELSE
-            new_check_id = (SELECT DISTINCT checks.id FROM p2p
-                JOIN checks ON p2p.check_id = checks.id
+            new_check_id = (SELECT DISTINCT checks.id FROM p2p JOIN checks ON p2p.check_id = checks.id
                 AND checks.task = new_task_title
                 AND checks.peer = new_checked_peer
                 AND p2p.state = 'success'
@@ -92,12 +91,59 @@ BEGIN
             INSERT INTO verter (check_id, state, check_time)
             VALUES (new_check_id, new_state, new_check_time);
         END IF;
-    ELSE
+
+    ELSE IF (new_state = 'success')
+    THEN
+        IF ((SELECT max(verter.check_time) FROM verter
+             JOIN checks c on verter.check_id = c.id
+             WHERE c.peer = new_checked_peer
+               AND c.task = new_task_title
+               AND verter.state = 'start') IS NULL)
+        THEN
+            RAISE EXCEPTION 'Verter check must be started';
+        ELSE
+            new_check_id = (SELECT DISTINCT checks.id FROM p2p JOIN checks ON p2p.check_id = checks.id
+                AND checks.task = new_task_title
+                AND checks.peer = new_checked_peer
+                AND p2p.state = 'success'
+                            ORDER BY p2p.check_time LIMIT 1);
+            INSERT INTO verter (check_id, state, check_time)
+            VALUES (new_check_id, new_state, new_check_time);
+
         new_check_id = (SELECT check_id FROM verter
                         GROUP BY check_id
                         HAVING count(*) % 2 = 1);
         INSERT INTO verter (check_id, state, check_time)
         VALUES (new_check_id, new_state, new_check_time);
+        END IF;
+
+    ELSE IF (new_state = 'failure')
+    THEN
+        IF ((SELECT max(verter.check_time) FROM verter
+                                                    JOIN checks c on verter.check_id = c.id
+             WHERE c.peer = new_checked_peer
+               AND c.task = new_task_title
+               AND verter.state = 'start') IS NULL)
+        THEN
+            RAISE EXCEPTION 'Verter check must be started';
+        ELSE
+            new_check_id = (SELECT DISTINCT checks.id FROM p2p JOIN checks ON p2p.check_id = checks.id
+                AND checks.task = new_task_title
+                AND checks.peer = new_checked_peer
+                AND p2p.state = 'success'
+                            ORDER BY p2p.check_time LIMIT 1);
+            INSERT INTO verter (check_id, state, check_time)
+            VALUES (new_check_id, new_state, new_check_time);
+
+            new_check_id = (SELECT check_id FROM verter
+                            GROUP BY check_id
+                            HAVING count(*) % 2 = 1);
+            INSERT INTO verter (check_id, state, check_time)
+            VALUES (new_check_id, new_state, new_check_time);
+        END IF;
+
+    END IF;
+    END IF;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
@@ -106,7 +152,8 @@ $$ LANGUAGE plpgsql;
 -- TEST CASES
 -------------------------------------------------------------------------------------------
 
-CALL pr_add_verter_check('maddiega', 'C7_SmartCalc_v1.0', 'success', '22:50:00');
+CALL pr_add_verter_check('maddiega', 'C7_SmartCalc_v1.0', 'start', '22:50:00');
+CALL pr_add_verter_check('maddiega', 'C7_SmartCalc_v1.0', 'success', '22:50:01');
 
 
 --==========================================================---
