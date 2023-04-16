@@ -14,7 +14,7 @@ BEGIN
         cnt := cnt + 1;
         t := CONCAT(t, rec.proname, ' ', rec.proargnames, ', ');
     END LOOP;
-    RAISE NOTICE '%', trim(TRAILING ', ' FROM t);
+    RAISE NOTICE 'Scalar user-defined functions: %', trim(TRAILING ', ' FROM t);
 END;
 $$ LANGUAGE plpgsql;
 
@@ -33,4 +33,7 @@ DO $$
         RAISE NOTICE 'RETURNS: %', a;
     END;
 $$;
+
+DROP FUNCTION IF EXISTS fn_hello(), fn_sum(a NUMERIC, b NUMERIC), fn_four(), fn_dif(a NUMERIC, b NUMERIC, c NUMERIC);
+
 
