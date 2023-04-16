@@ -2,20 +2,19 @@ CREATE OR REPLACE PROCEDURE proc_scalar_functions(OUT cnt NUMERIC)
 AS $$
 DECLARE
     rec RECORD;
+    ref cursor for (SELECT ROW_NUMBER() OVER () as num, proname, proargnames FROM pg_proc
+         WHERE proowner = (SELECT oid FROM pg_authid WHERE rolname = CURRENT_USER)
+             AND prokind = 'f' AND proretset = FALSE
+             AND prorettype != (SELECT oid FROM pg_type WHERE typname = 'void')
+             AND proargnames IS NOT NULL);
+    t TEXT DEFAULT '';
 BEGIN
-    FOR rec IN (SELECT proname, proargnames FROM pg_proc
-                WHERE proowner = (SELECT oid FROM pg_authid WHERE rolname = CURRENT_USER)
-                    AND prokind = 'f' AND proretset = FALSE
-                    AND prorettype != (SELECT oid FROM pg_type WHERE typname = 'void')
-                    AND proargnames IS NOT NULL)
-    LOOP
-        RAISE NOTICE 'Name: %, args: %', rec.proname, rec.proargnames;
+    cnt := 0;
+    FOR rec IN ref LOOP
+        cnt := cnt + 1;
+        t := CONCAT(t, rec.proname, ' ', rec.proargnames, ', ');
     END LOOP;
-    cnt := (SELECT COUNT(proname) FROM pg_proc
-            WHERE proowner = (SELECT oid FROM pg_authid WHERE rolname = CURRENT_USER)
-                AND prokind = 'f' AND proretset = FALSE
-                AND prorettype != (SELECT oid FROM pg_type WHERE typname = 'void')
-                AND proargnames IS NOT NULL);
+    RAISE NOTICE '%', trim(TRAILING ', ' FROM t);
 END;
 $$ LANGUAGE plpgsql;
 
@@ -24,6 +23,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION fn_hello() RETURNS void AS $$  BEGIN END; $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION fn_four() RETURNS INT AS $$  BEGIN RETURN 4; END; $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION fn_sum(a NUMERIC, b NUMERIC) RETURNS NUMERIC AS $$  BEGIN RETURN a + b; END; $$ LANGUAGE plpgsql;
+CREATE OR REPLACE FUNCTION fn_dif(a NUMERIC, b NUMERIC, c NUMERIC) RETURNS NUMERIC AS $$  BEGIN RETURN a - b - c; END; $$ LANGUAGE plpgsql;
 
 DO $$
     DECLARE
