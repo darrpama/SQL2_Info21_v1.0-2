@@ -12,10 +12,10 @@ $$ LANGUAGE plpgsql;
 
 
 --TEST
-INSERT INTO time_tracking VALUES(21, 'vindicat', '2023-04-15', '11:30:00', 1);
-INSERT INTO time_tracking VALUES(22, 'vindicat', '2023-04-15', '12:30:00', 2);
-INSERT INTO time_tracking VALUES(23, 'vindicat', '2023-04-14', '11:30:00', 1);
-INSERT INTO time_tracking VALUES(24, 'vindicat', '2023-04-14', '12:30:00', 2);
+INSERT INTO time_tracking VALUES(21, 'vindicat', NOW(), '11:30:00', 1);
+INSERT INTO time_tracking VALUES(22, 'vindicat', NOW(), '12:30:00', 2);
+INSERT INTO time_tracking VALUES(23, 'vindicat', NOW(), '11:30:00', 1);
+INSERT INTO time_tracking VALUES(24, 'vindicat', NOW(), '12:30:00', 2);
 
 SELECT * FROM fn_get_going_out_peers(2, 1);
 
