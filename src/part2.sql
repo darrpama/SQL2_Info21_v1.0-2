@@ -14,29 +14,28 @@ CREATE OR REPLACE PROCEDURE pr_add_p2p_check(new_checked_peer text, new_checking
 AS $$
 DECLARE
     new_check_id BIGINT := 0;
-    new_p2p_id BIGINT := 0;
 BEGIN
     IF new_state = 'start' THEN
         IF ((SELECT count(*) FROM p2p
              JOIN checks ON p2p.check_id = checks.id
              WHERE p2p.checking_peer = new_checking_peer
                AND checks.peer = new_checked_peer
-               AND checks.task = new_task_title) = 1)
+               AND checks.task = new_task_title
+               ) % 2 = 1)
         THEN
             RAISE EXCEPTION 'Last check with same peer must be done';
         ELSE
-            new_check_id = (SELECT max(id) + 1 FROM checks);
-            INSERT INTO checks (id, peer, task, check_date)
-            VALUES (new_check_id, new_checked_peer, new_task_title, now());
+            INSERT INTO checks (peer, task, check_date)
+            VALUES (new_checked_peer, new_task_title, now());
+            new_check_id = (SELECT max(id) FROM checks);
 
-            new_p2p_id = (SELECT max(id) + 1 FROM p2p);
-            INSERT INTO p2p (id, check_id, checking_peer, state, check_time)
-            VALUES (new_p2p_id, new_check_id - 1, new_checking_peer, new_state, new_check_time);
+            INSERT INTO p2p (check_id, checking_peer, state, check_time)
+            VALUES (new_check_id, new_checking_peer, new_state, new_check_time);
         END IF;
     ELSE
         new_check_id = (SELECT checks.id FROM p2p
                         INNER JOIN checks ON checks.id = p2p.check_id
-                        WHERE peer = new_checked_peer
+                        WHERE checks.peer = new_checked_peer
                           AND p2p.checking_peer = new_checking_peer
                           AND task = new_task_title
                         ORDER BY checks.id DESC LIMIT 1);
@@ -46,16 +45,19 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
+-- TRUNCATE checks, p2p, verter, xp RESTART IDENTITY CASCADE;
+
 
 -------------------------------------------------------------------------------------------
 -- TEST CASES
 -------------------------------------------------------------------------------------------
 
 SELECT * FROM p2p WHERE checking_peer = 'myregree';
-CALL pr_add_p2p_check('darrpama', 'myregree', 'C7_SmartCalc_v1.0', 'start'::check_state, '15:30:01');
+CALL pr_add_p2p_check('darrpama', 'myregree', 'C2_SimpleBashUtils', 'start'::check_state, '15:30:01');
 SELECT * FROM p2p WHERE checking_peer = 'myregree';
 -- Вызов команды повторно вызовет exception
-CALL pr_add_p2p_check('darrpama', 'myregree', 'C7_SmartCalc_v1.0', 'start'::check_state, '15:30:01');
+CALL pr_add_p2p_check('darrpama', 'myregree', 'C2_SimpleBashUtils', 'start'::check_state, '15:30:01');
+CALL pr_add_p2p_check('darrpama', 'myregree', 'C2_SimpleBashUtils', 'success'::check_state, '15:30:01');
 DELETE FROM p2p WHERE checking_peer = 'myregree' AND state = 'start';
 
 
@@ -71,89 +73,59 @@ CREATE OR REPLACE PROCEDURE pr_add_verter_check(new_checked_peer text, new_task_
 AS
 $$
 DECLARE
-    new_check_id BIGINT := 0;
-BEGIN
-    IF (new_state = 'start')
-    THEN
-        IF ((SELECT max(p2p.check_time) FROM p2p
-             JOIN checks c on p2p.check_id = c.id
-             WHERE c.peer = new_checked_peer
-               AND c.task = new_task_title
-               AND p2p.state = 'success') IS NULL)
-        THEN
+--     check_id BIGINT := 0;
+    checkId bigint := (SELECT check_id
+                         FROM p2p JOIN checks ON p2p.check_id = checks.id
+                         AND checks.task = new_task_title
+                         AND checks.peer = new_checked_peer
+                        WHERE state = 'success'
+                        ORDER BY check_date, check_time LIMIT 1);
+    checkStartVerter  check_state := (SELECT state FROM verter WHERE check_id = checkId AND state = 'start');
+    checkFinishVerter  check_state := (SELECT state FROM verter WHERE check_id = checkId AND state != 'start');
+
+    BEGIN
+    IF (new_state = 'start') THEN
+        IF (checkId IS NULL) THEN
             RAISE EXCEPTION 'P2P must be success';
-        ELSE
-            new_check_id = (SELECT DISTINCT checks.id FROM p2p JOIN checks ON p2p.check_id = checks.id
-                AND checks.task = new_task_title
-                AND checks.peer = new_checked_peer
-                AND p2p.state = 'success'
-                            ORDER BY p2p.check_time LIMIT 1);
-            INSERT INTO verter (check_id, state, check_time)
-            VALUES (new_check_id, new_state, new_check_time);
+        ELSIF (checkStartVerter IS NOT NULL) THEN
+            RAISE EXCEPTION 'Verter check has been already started';
         END IF;
-
-    ELSE IF (new_state = 'success')
-    THEN
-        IF ((SELECT max(verter.check_time) FROM verter
-             JOIN checks c on verter.check_id = c.id
-             WHERE c.peer = new_checked_peer
-               AND c.task = new_task_title
-               AND verter.state = 'start') IS NULL)
+    ELSIF (checkStartVerter IS NULL)
         THEN
             RAISE EXCEPTION 'Verter check must be started';
-        ELSE
-            new_check_id = (SELECT DISTINCT checks.id FROM p2p JOIN checks ON p2p.check_id = checks.id
-                AND checks.task = new_task_title
-                AND checks.peer = new_checked_peer
-                AND p2p.state = 'success'
-                            ORDER BY p2p.check_time LIMIT 1);
-            INSERT INTO verter (check_id, state, check_time)
-            VALUES (new_check_id, new_state, new_check_time);
-
-        new_check_id = (SELECT check_id FROM verter
-                        GROUP BY check_id
-                        HAVING count(*) % 2 = 1);
-        INSERT INTO verter (check_id, state, check_time)
-        VALUES (new_check_id, new_state, new_check_time);
-        END IF;
-
-    ELSE IF (new_state = 'failure')
-    THEN
-        IF ((SELECT max(verter.check_time) FROM verter
-                                                    JOIN checks c on verter.check_id = c.id
-             WHERE c.peer = new_checked_peer
-               AND c.task = new_task_title
-               AND verter.state = 'start') IS NULL)
+    ELSIF (checkFinishVerter IS NOT NULL)
         THEN
-            RAISE EXCEPTION 'Verter check must be started';
-        ELSE
-            new_check_id = (SELECT DISTINCT checks.id FROM p2p JOIN checks ON p2p.check_id = checks.id
-                AND checks.task = new_task_title
-                AND checks.peer = new_checked_peer
-                AND p2p.state = 'success'
-                            ORDER BY p2p.check_time LIMIT 1);
-            INSERT INTO verter (check_id, state, check_time)
-            VALUES (new_check_id, new_state, new_check_time);
-
-            new_check_id = (SELECT check_id FROM verter
-                            GROUP BY check_id
-                            HAVING count(*) % 2 = 1);
-            INSERT INTO verter (check_id, state, check_time)
-            VALUES (new_check_id, new_state, new_check_time);
-        END IF;
-
+            RAISE EXCEPTION 'Verter check has been already done';
     END IF;
-    END IF;
-    END IF;
-END;
+    INSERT INTO verter (check_id, state, check_time)
+    VALUES (checkId, new_state, new_check_time);
+END
 $$ LANGUAGE plpgsql;
 
 -------------------------------------------------------------------------------------------
 -- TEST CASES
 -------------------------------------------------------------------------------------------
+SELECT *
+FROM p2p JOIN checks ON p2p.check_id = checks.id
+AND checks.task = 'C2_SimpleBashUtils'
+AND checks.peer = 'darrpama'
+ORDER BY check_date, check_time LIMIT 1;
 
-CALL pr_add_verter_check('maddiega', 'C7_SmartCalc_v1.0', 'start', '22:50:00');
-CALL pr_add_verter_check('maddiega', 'C7_SmartCalc_v1.0', 'success', '22:50:01');
+SELECT * FROM verter
+             JOIN checks c ON verter.check_id = c.id
+             WHERE c.peer = 'darrpama'
+               AND c.task = 'C2_SimpleBashUtils'
+               AND verter.state = 'start';
+
+TRUNCATE checks, p2p, verter, xp RESTART IDENTITY CASCADE;
+
+CALL pr_add_p2p_check('darrpama', 'myregree', 'C2_SimpleBashUtils', 'start'::check_state, '15:30:01');
+CALL pr_add_p2p_check('darrpama', 'myregree', 'C2_SimpleBashUtils', 'success'::check_state, '15:30:01');
+CALL pr_add_p2p_check('darrpama', 'myregree', 'C2_SimpleBashUtils', 'failure'::check_state, '15:30:01');
+
+
+CALL pr_add_verter_check('darrpama', 'C2_SimpleBashUtils', 'start', '22:50:00');
+CALL pr_add_verter_check('darrpama', 'C2_SimpleBashUtils', 'success', '22:50:01');
 
 
 --==========================================================---
