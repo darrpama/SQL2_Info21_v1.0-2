@@ -2,23 +2,21 @@ CREATE OR REPLACE PROCEDURE proc_scalar_functions_and_procedures_contains_str(IN
 AS $$
 DECLARE
     rec RECORD;
-    ref cursor for (SELECT proname, prosrc FROM pg_proc
-         WHERE ((prokind = 'f' AND proretset = FALSE
-                 AND prorettype != (SELECT oid FROM pg_type WHERE typname = 'void'))
-             OR prokind = 'p') AND upper(prosrc) SIMILAR TO CONCAT('%', upper(str), '%'));
+    ref CURSOR FOR (
+        SELECT proname, description
+        FROM pg_proc LEFT JOIN pg_description pd ON oid=objoid
+        WHERE ((prokind = 'f' AND proretset = FALSE
+                AND prorettype != (SELECT oid FROM pg_type WHERE typname = 'void'))
+           OR prokind = 'p')
+          AND (upper(proname) SIMILAR TO CONCAT('%', upper(str), '%')
+                   OR upper(description) SIMILAR TO CONCAT('%', upper(str), '%')));
 BEGIN
     FOR rec IN ref LOOP
-        RAISE NOTICE '==================== % description ====================', rec.proname;
-        RAISE NOTICE '%', rec.prosrc;
+        RAISE NOTICE '% description: %', rec.proname, rec.description;
     END LOOP;
 END;
 $$ LANGUAGE plpgsql;
 
 
 -- TEST
-CREATE OR REPLACE FUNCTION fn_sum(a NUMERIC, b NUMERIC) RETURNS NUMERIC AS $$  BEGIN RETURN a + b; END; $$ LANGUAGE plpgsql;
-CREATE OR REPLACE FUNCTION fn_dif(a NUMERIC, b NUMERIC, c NUMERIC) RETURNS NUMERIC AS $$  BEGIN RETURN a - b - c; END; $$ LANGUAGE plpgsql;
-
-CALL proc_scalar_functions_and_procedures_contains_str('\+');
-
-DROP FUNCTION IF EXISTS fn_sum(a NUMERIC, b NUMERIC), fn_dif(a NUMERIC, b NUMERIC, c NUMERIC);
+CALL proc_scalar_functions_and_procedures_contains_str('rou');
