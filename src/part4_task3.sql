@@ -4,7 +4,7 @@ DECLARE
     result INT;
     triggerName RECORD;
 BEGIN
-    FOR triggerName IN SELECT * FROM information_schema.triggers as t
+    FOR triggerName IN SELECT * FROM information_schema.triggers AS t
         WHERE t.trigger_schema = 'public'
         AND t.trigger_catalog = (SELECT current_database()) LOOP
             RAISE NOTICE 'Dropping trigger: % on table: %', triggerName.trigger_name, triggerName.event_object_table;
@@ -27,7 +27,7 @@ $$;
 CREATE TRIGGER test_trigger
   BEFORE UPDATE ON peers
   FOR EACH ROW
-  EXECUTE PROCEDURE test_trigger();
+  EXECUTE PROCEDURE test_trigger_func();
 
 -- TESTING PROCEDURE
 DO $$
@@ -39,7 +39,6 @@ BEGIN
 END;$$;
 
 -- ASSERT RESULT
-SELECT * FROM information_schema.triggers as t
+SELECT * FROM information_schema.triggers AS t
         WHERE t.trigger_schema = 'public'
         AND t.trigger_catalog = (SELECT current_database());
-
