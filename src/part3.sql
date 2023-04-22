@@ -140,13 +140,14 @@ CREATE OR REPLACE FUNCTION fn_count_peer_points_changes_by_human_readable_func (
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT peerlist.peer, sum(pointsamount)
+    SELECT peerlist.peer, sum(pointsamount) s
     FROM (
         (SELECT peer1 as peer, pointsamount FROM human_readable_transferredPoints() t1)
         UNION ALL
         (SELECT peer2 as peer, (pointsamount * -1) FROM human_readable_transferredPoints() t1)
     ) as peerlist
-    GROUP BY peerlist.peer;
+    GROUP BY peerlist.peer
+    ORDER BY s DESC;
 END; $$;
 
 SELECT * FROM fn_count_peer_points_changes_by_human_readable_func();
