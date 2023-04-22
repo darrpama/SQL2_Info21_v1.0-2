@@ -69,3 +69,11 @@ id,check_id,checking_peer,state,check_time
 68,34,vindicat,success,20:45:00
 69,35,cindabru,start,20:00:00
 70,35,cindabru,success,20:45:00
+71,36,vindicat,start,20:46:00
+72,36,vindicat,success,20:58:00
+73,37,vindicat,start,21:46:00
+74,37,vindicat,success,21:58:00
+75,38,woodensa,start,15:46:00
+76,38,woodensa,success,16:58:00
+77,39,woodensa,start,15:46:00
+78,39,woodensa,success,16:58:00
