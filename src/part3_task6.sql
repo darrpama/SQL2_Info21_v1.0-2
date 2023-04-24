@@ -5,29 +5,21 @@ CREATE OR REPLACE FUNCTION fn_mostly_checked_tasks_by_days ()
     )
     LANGUAGE plpgsql
 AS $$
+    #variable_conflict use_column
 BEGIN
     RETURN QUERY
-        WITH day_max AS (
-            SELECT DISTINCT ON (t.check_date) t.check_date, tasks_count
-            FROM (
-                SELECT count(c2.task) AS tasks_count, check_date
-                FROM checks AS c2
-                GROUP BY c2.task, c2.check_date
-            ) AS t
-            ORDER BY t.check_date, tasks_count DESC
-        )
-        SELECT
-            t1.check_date AS Day,
-            t1.task AS Task
-        FROM (
-            SELECT c1.task, count(c1.task) AS tasks_count, c1.check_date
-            FROM checks AS c1
-            GROUP BY c1.task, c1.check_date
-        ) t1
-        INNER JOIN day_max t2
-            ON t1.check_date = t2.check_date
-            AND t1.tasks_count = t2.tasks_count
-        ORDER BY Day;
+        WITH t AS (SELECT check_date, task, COUNT(task) as cnt
+                   FROM checks
+                   GROUP BY check_date, task)
+
+        SELECT t.check_date as day, task
+        FROM t
+            LEFT JOIN (
+                SELECT check_date, MAX(cnt) as m
+                FROM t
+                GROUP BY check_date
+            ) t2 on t.check_date = t2.check_date
+        WHERE m = cnt;
 END; $$;
 
 
@@ -37,54 +29,36 @@ SELECT * FROM fn_mostly_checked_tasks_by_days();
 -- PREPARE TEST DATA
 TRUNCATE checks, p2p, verter, xp RESTART IDENTITY CASCADE;
 -- 01-01
-INSERT INTO checks(peer, task, check_date) VALUES ('darrpama', 'C2_SimpleBashUtils', '2023-01-01 22:25');
-INSERT INTO p2p(check_id, checking_peer, state, check_time) VALUES (1, 'myregree', 'start', '2023-01-01 20:25');
-INSERT INTO p2p(check_id, checking_peer, state, check_time) VALUES (1, 'myregree', 'success', '2023-01-01 20:35');
-INSERT INTO verter(check_id, state, check_time) VALUES (1, 'start', '2023-01-01 22:45');
-INSERT INTO verter(check_id, state, check_time) VALUES (1, 'success', '2023-01-01 22:55');
-INSERT INTO xp(check_id, xp_amount) VALUES (1, 250);
+call pr_add_p2p_check('darrpama', 'myregree', 'C2_SimpleBashUtils','start', '20:25');
+call pr_add_p2p_check('darrpama', 'myregree', 'C2_SimpleBashUtils','success', '20:45');
+call pr_add_verter_check('darrpama', 'C2_SimpleBashUtils','start', '21:05');
+call pr_add_verter_check('darrpama', 'C2_SimpleBashUtils','success', '21:06');
 
-INSERT INTO checks(peer, task, check_date) VALUES ('myregree', 'C2_SimpleBashUtils', '2023-01-01 22:25');
-INSERT INTO p2p(check_id, checking_peer, state, check_time) VALUES (2, 'darrpama', 'start', '2023-01-01 20:25');
-INSERT INTO p2p(check_id, checking_peer, state, check_time) VALUES (2, 'darrpama', 'success', '2023-01-01 20:35');
-INSERT INTO verter(check_id, state, check_time) VALUES (2, 'start', '2023-01-01 22:45');
-INSERT INTO verter(check_id, state, check_time) VALUES (2, 'success', '2023-01-01 22:55');
-INSERT INTO xp(check_id, xp_amount) VALUES (2, 250);
+call pr_add_p2p_check('myregree', 'darrpama', 'C2_SimpleBashUtils','start', '20:25');
+call pr_add_p2p_check('myregree', 'darrpama', 'C2_SimpleBashUtils','success', '20:45');
+call pr_add_verter_check('myregree', 'C2_SimpleBashUtils','start', '21:05');
+call pr_add_verter_check('myregree', 'C2_SimpleBashUtils','success', '21:06');
 
-INSERT INTO checks(peer, task, check_date) VALUES ('myregree', 'C3_s21_string+', '2023-01-01 22:25');
-INSERT INTO p2p(check_id, checking_peer, state, check_time) VALUES (3, 'darrpama', 'start', '2023-01-01 20:25');
-INSERT INTO p2p(check_id, checking_peer, state, check_time) VALUES (3, 'darrpama', 'success', '2023-01-01 20:35');
-INSERT INTO verter(check_id, state, check_time) VALUES (3, 'start', '2023-01-01 22:45');
-INSERT INTO verter(check_id, state, check_time) VALUES (3, 'success', '2023-01-01 22:55');
-INSERT INTO xp(check_id, xp_amount) VALUES (3, 250);
+call pr_add_p2p_check('darrpama', 'myregree', 'C3_s21_string+','start', '20:25');
+call pr_add_p2p_check('darrpama', 'myregree', 'C3_s21_string+','success', '20:45');
+call pr_add_verter_check('darrpama', 'C3_s21_string+','start', '21:05');
+call pr_add_verter_check('darrpama', 'C3_s21_string+','success', '21:06');
 
-INSERT INTO checks(peer, task, check_date) VALUES ('myregree', 'C3_s21_string+', '2023-01-01 22:25');
-INSERT INTO p2p(check_id, checking_peer, state, check_time) VALUES (10, 'darrpama', 'start', '2023-01-01 20:25');
-INSERT INTO p2p(check_id, checking_peer, state, check_time) VALUES (10, 'darrpama', 'success', '2023-01-01 20:35');
-INSERT INTO verter(check_id, state, check_time) VALUES (10, 'start', '2023-01-01 22:45');
-INSERT INTO verter(check_id, state, check_time) VALUES (10, 'success', '2023-01-01 22:55');
-INSERT INTO xp(check_id, xp_amount) VALUES (10, 250);
+call pr_add_p2p_check('myregree', 'darrpama', 'C3_s21_string+','start', '20:25');
+call pr_add_p2p_check('myregree', 'darrpama', 'C3_s21_string+','success', '20:45');
+call pr_add_verter_check('myregree', 'C3_s21_string+','start', '21:05');
+call pr_add_verter_check('myregree', 'C3_s21_string+','success', '21:06');
 
-INSERT INTO checks(peer, task, check_date) VALUES ('myregree', 'C4_s21_math', '2023-01-01 22:25');
-INSERT INTO p2p(check_id, checking_peer, state, check_time) VALUES (11, 'darrpama', 'start', '2023-01-01 20:25');
-INSERT INTO p2p(check_id, checking_peer, state, check_time) VALUES (11, 'darrpama', 'success', '2023-01-01 20:35');
-INSERT INTO verter(check_id, state, check_time) VALUES (11, 'start', '2023-01-01 22:45');
-INSERT INTO verter(check_id, state, check_time) VALUES (11, 'success', '2023-01-01 22:55');
-INSERT INTO xp(check_id, xp_amount) VALUES (11, 250);
+call pr_add_p2p_check('maddiega', 'darrpama', 'C3_s21_string+','start', '20:25');
+call pr_add_p2p_check('maddiega', 'darrpama', 'C3_s21_string+','success', '20:45');
+call pr_add_verter_check('maddiega', 'C3_s21_string+','start', '21:05');
+call pr_add_verter_check('maddiega', 'C3_s21_string+','success', '21:06');
 
--- 01-02
 INSERT INTO checks(peer, task, check_date) VALUES ('darrpama', 'C2_SimpleBashUtils', '2023-01-02 22:25');
-INSERT INTO p2p(check_id, checking_peer, state, check_time) VALUES (4, 'myregree', 'start', '2023-01-02 20:25');
-INSERT INTO p2p(check_id, checking_peer, state, check_time) VALUES (4, 'myregree', 'success', '2023-01-02 20:35');
-INSERT INTO verter(check_id, state, check_time) VALUES (4, 'start', '2023-01-01 22:45');
-INSERT INTO verter(check_id, state, check_time) VALUES (4, 'success', '2023-01-01 22:55');
-INSERT INTO xp(check_id, xp_amount) VALUES (4, 250);
-
-INSERT INTO checks(peer, task, check_date) VALUES ('myregree', 'C3_s21_string+', '2023-01-02 22:25');
-INSERT INTO p2p(check_id, checking_peer, state, check_time) VALUES (5, 'darrpama', 'start', '2023-01-02 20:25');
-INSERT INTO p2p(check_id, checking_peer, state, check_time) VALUES (5, 'darrpama', 'success', '2023-01-02 20:35');
-INSERT INTO verter(check_id, state, check_time) VALUES (5, 'start', '2023-01-02 22:45');
-INSERT INTO verter(check_id, state, check_time) VALUES (5, 'success', '2023-01-02 22:55');
+INSERT INTO p2p(check_id, checking_peer, state, check_time) VALUES (5, 'myregree', 'start', '2023-01-02 20:25');
+INSERT INTO p2p(check_id, checking_peer, state, check_time) VALUES (5, 'myregree', 'success', '2023-01-02 20:35');
+INSERT INTO verter(check_id, state, check_time) VALUES (5, 'start', '2023-01-01 22:45');
+INSERT INTO verter(check_id, state, check_time) VALUES (5, 'success', '2023-01-01 22:55');
 INSERT INTO xp(check_id, xp_amount) VALUES (5, 250);
 
 INSERT INTO checks(peer, task, check_date) VALUES ('myregree', 'C3_s21_string+', '2023-01-02 22:25');
@@ -94,23 +68,3 @@ INSERT INTO verter(check_id, state, check_time) VALUES (6, 'start', '2023-01-02 
 INSERT INTO verter(check_id, state, check_time) VALUES (6, 'success', '2023-01-02 22:55');
 INSERT INTO xp(check_id, xp_amount) VALUES (6, 250);
 
-INSERT INTO checks(peer, task, check_date) VALUES ('myregree', 'C4_s21_math', '2023-01-02 22:25');
-INSERT INTO p2p(check_id, checking_peer, state, check_time) VALUES (7, 'darrpama', 'start', '2023-01-02 20:25');
-INSERT INTO p2p(check_id, checking_peer, state, check_time) VALUES (7, 'darrpama', 'success', '2023-01-02 20:35');
-INSERT INTO verter(check_id, state, check_time) VALUES (7, 'start', '2023-01-02 22:45');
-INSERT INTO verter(check_id, state, check_time) VALUES (7, 'success', '2023-01-02 22:55');
-INSERT INTO xp(check_id, xp_amount) VALUES (7, 250);
-
-INSERT INTO checks(peer, task, check_date) VALUES ('myregree', 'C4_s21_math', '2023-01-02 22:25');
-INSERT INTO p2p(check_id, checking_peer, state, check_time) VALUES (8, 'darrpama', 'start', '2023-01-02 20:25');
-INSERT INTO p2p(check_id, checking_peer, state, check_time) VALUES (8, 'darrpama', 'success', '2023-01-02 20:35');
-INSERT INTO verter(check_id, state, check_time) VALUES (8, 'start', '2023-01-02 22:45');
-INSERT INTO verter(check_id, state, check_time) VALUES (8, 'success', '2023-01-02 22:55');
-INSERT INTO xp(check_id, xp_amount) VALUES (8, 250);
-
-INSERT INTO checks(peer, task, check_date) VALUES ('myregree', 'C4_s21_math', '2023-01-02 22:25');
-INSERT INTO p2p(check_id, checking_peer, state, check_time) VALUES (9, 'darrpama', 'start', '2023-01-02 20:25');
-INSERT INTO p2p(check_id, checking_peer, state, check_time) VALUES (9, 'darrpama', 'success', '2023-01-02 20:35');
-INSERT INTO verter(check_id, state, check_time) VALUES (9, 'start', '2023-01-02 22:45');
-INSERT INTO verter(check_id, state, check_time) VALUES (9, 'success', '2023-01-02 22:55');
-INSERT INTO xp(check_id, xp_amount) VALUES (9, 250);
