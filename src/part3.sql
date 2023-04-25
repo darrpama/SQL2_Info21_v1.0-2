@@ -57,8 +57,6 @@ $$
     BEGIN
         RETURN QUERY
             SELECT c.peer, c.task, x.xp_amount FROM checks AS c
-                INNER JOIN p2p p on c.id = p.check_id AND p.state = 'success'
-                INNER JOIN verter v on c.id = v.check_id AND v.state = 'success'
                 INNER JOIN xp x on c.id = x.check_id;
     END;
 $$;
