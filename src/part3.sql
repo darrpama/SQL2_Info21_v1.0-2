@@ -459,7 +459,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-SELECT * FROM fn_get_going_out_peers(2, 1);
+SELECT * FROM fn_get_going_out_peers(NOW()::DATE - '2022-03-22'::DATE + 1, 1);
 
 /* 17) Determine for each month the percentage of early entries
 
