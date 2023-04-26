@@ -85,7 +85,7 @@ BEGIN
 END;
 $$ language plpgsql;
 
-SELECT * FROM fn_get_peers_without_break_during_the_day('2023-04-08');
+SELECT * FROM fn_get_peers_without_break_during_the_day('2022-03-22');
 
 /* 4) Calculate the change in the number of peer points of each peer using
    the TransferredPoints table.
