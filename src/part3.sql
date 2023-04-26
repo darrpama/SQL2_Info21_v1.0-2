@@ -104,7 +104,7 @@ BEGIN
     RETURN QUERY
     SELECT
         checking.peer,
-        (income - outcome)
+        (income - outcome) as points
     FROM (
         SELECT
             tp1.checking_peer as peer,
@@ -118,7 +118,8 @@ BEGIN
                 sum(tp1.points_amount) as outcome
             FROM transferred_points tp1
             GROUP BY tp1.checked_peer
-        ) AS checked ON checking.peer = checked.peer;
+        ) AS checked ON checking.peer = checked.peer
+    ORDER BY points DESC;
 END; $$;
 
 SELECT * FROM fn_count_peer_points_changes_by_transferredPoints();
