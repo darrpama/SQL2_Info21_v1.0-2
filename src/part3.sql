@@ -218,7 +218,7 @@ SELECT * FROM fn_get_peers_finished_block('C');
    Output format: peer's nickname, nickname of the checker found */
 
 CREATE OR REPLACE FUNCTION fn_wich_peer_should_peer_be_evaluated()
-    RETURNS TABLE (peer VARCHAR, recommended_peer VARCHAR)
+    RETURNS TABLE (peer VARCHAR, RecommendedPeer VARCHAR)
 AS $$
 BEGIN
     RETURN QUERY
