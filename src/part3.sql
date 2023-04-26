@@ -291,8 +291,10 @@ AS $$
                         AND state IS NOT NULL AND state != 'start'),
                 cnt AS (SELECT COUNT(DISTINCT peer) FROM birthday_checks)
         SELECT * FROM
-            (SELECT (COUNT(DISTINCT peer) * 100 / (SELECT * FROM cnt))::INTEGER FROM birthday_checks WHERE state = 'success') as s CROSS JOIN
-            (SELECT (COUNT(DISTINCT peer) * 100 / (SELECT * FROM cnt))::INTEGER FROM birthday_checks WHERE state = 'failure') as f;
+            (SELECT (COUNT(DISTINCT peer) * 100 / NULLIF((SELECT * FROM cnt), 0))::INTEGER
+             FROM birthday_checks WHERE state = 'success') as s CROSS JOIN
+            (SELECT (COUNT(DISTINCT peer) * 100 / NULLIF((SELECT * FROM cnt), 0))::INTEGER
+             FROM birthday_checks WHERE state = 'failure') as f;
     END;
 $$ LANGUAGE plpgsql;
 
