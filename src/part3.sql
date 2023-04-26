@@ -405,7 +405,10 @@ BEGIN
     SELECT
         t.peer,
         SUM(t.xp) as XP
-    FROM fnc_get_peers_success_tasks_with_xp() as t
+    FROM (
+        SELECT f.peer, f.task, MAX(f.xp) as xp
+        FROM fnc_get_peers_success_tasks_with_xp() f
+        GROUP BY f.peer, f.task) as t
     GROUP BY t.peer
     ORDER BY XP DESC
     LIMIT 1;
