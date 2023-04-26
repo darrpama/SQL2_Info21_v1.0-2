@@ -326,7 +326,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-SELECT * FROM fn_check_peers_two_of_three_task_done('CPP1_s21_matrix+', 'C2_SimpleBashUtils', 'C3_s21_string+');
+SELECT * FROM fn_check_peers_two_of_three_task_done('C5_s21_decimal', 'C3_s21_string+', 'C4_s21_math');
 
 /* 12) Using recursive common table expression, output the number of preceding
    tasks for each task
