@@ -6,11 +6,10 @@
 
 CREATE OR REPLACE FUNCTION human_readable_transferredPoints()
     RETURNS TABLE (
-        peer1 varchar,
-        peer2 varchar,
-        pointsAmount bigint
+        peer1 VARCHAR,
+        peer2 VARCHAR,
+        pointsAmount BIGINT
     )
-    language plpgsql
 AS $$
 DECLARE var_r record;
 BEGIN
@@ -32,11 +31,12 @@ BEGIN
                 ON tp1.checking_peer = tp2.checked_peer
                 AND tp1.checked_peer = tp2.checking_peer
             ORDER BY tp1.id
-        ) as calculated
+        ) AS calculated
         ORDER BY pair
     ) AS data
 ORDER BY checking_peer;
-END; $$;
+END;
+$$ LANGUAGE plpgsql;
 
 SELECT * FROM human_readable_transferredPoints();
 
@@ -49,19 +49,17 @@ SELECT * FROM human_readable_transferredPoints();
 
 CREATE OR REPLACE FUNCTION fnc_get_peers_success_tasks_with_xp()
     RETURNS TABLE (
-        Peer varchar,
-        Task varchar,
-        XP bigint
-    ) language plpgsql AS
-$$
-    BEGIN
-        RETURN QUERY
-            SELECT c.peer, c.task, x.xp_amount FROM checks AS c
-                INNER JOIN p2p p on c.id = p.check_id AND p.state = 'success'
-                INNER JOIN verter v on c.id = v.check_id AND v.state = 'success'
-                INNER JOIN xp x on c.id = x.check_id;
-    END;
-$$;
+        Peer VARCHAR,
+        Task VARCHAR,
+        XP BIGINT
+    )
+AS $$
+BEGIN
+    RETURN QUERY
+        SELECT c.peer, c.task, x.xp_amount FROM checks AS c
+            INNER JOIN xp x ON c.id = x.check_id;
+END;
+$$ LANGUAGE plpgsql;
 
 SELECT * FROM fnc_get_peers_success_tasks_with_xp();
 
@@ -72,7 +70,7 @@ SELECT * FROM fnc_get_peers_success_tasks_with_xp();
    The function returns only a list of peers. */
 
 CREATE OR REPLACE FUNCTION fn_get_peers_without_break_during_the_day(looking_date date)
-    RETURNS TABLE (peer varchar)
+    RETURNS TABLE (peer VARCHAR)
 AS $$
 BEGIN
     RETURN QUERY
@@ -85,9 +83,9 @@ BEGIN
     WHERE states_count.count = 1
     GROUP BY states_count.peer;
 END;
-$$ language plpgsql;
+$$ LANGUAGE plpgsql;
 
-SELECT * FROM fn_get_peers_without_break_during_the_day('2023-04-08');
+SELECT * FROM fn_get_peers_without_break_during_the_day('2022-03-22');
 
 /* 4) Calculate the change in the number of peer points of each peer using
    the TransferredPoints table.
@@ -97,31 +95,32 @@ SELECT * FROM fn_get_peers_without_break_during_the_day('2023-04-08');
 
 CREATE OR REPLACE FUNCTION fn_count_peer_points_changes_by_transferredPoints()
     RETURNS TABLE (
-        Peer varchar,
-        PointsChange numeric
+        Peer VARCHAR,
+        PointsChange NUMERIC
     )
-    language plpgsql
 AS $$
 BEGIN
     RETURN QUERY
     SELECT
         checking.peer,
-        (income - outcome)
+        (income - outcome) AS points
     FROM (
         SELECT
-            tp1.checking_peer as peer,
-            sum(tp1.points_amount) as income
+            tp1.checking_peer AS peer,
+            sum(tp1.points_amount) AS income
         FROM transferred_points tp1
         GROUP BY tp1.checking_peer
     ) AS checking
         JOIN (
             SELECT
-                tp1.checked_peer as peer,
-                sum(tp1.points_amount) as outcome
+                tp1.checked_peer AS peer,
+                sum(tp1.points_amount) AS outcome
             FROM transferred_points tp1
             GROUP BY tp1.checked_peer
-        ) AS checked ON checking.peer = checked.peer;
-END; $$;
+        ) AS checked ON checking.peer = checked.peer
+    ORDER BY points DESC;
+END;
+$$ LANGUAGE plpgsql;
 
 SELECT * FROM fn_count_peer_points_changes_by_transferredPoints();
 
@@ -133,19 +132,19 @@ SELECT * FROM fn_count_peer_points_changes_by_transferredPoints();
 
 CREATE OR REPLACE FUNCTION fn_count_peer_points_changes_by_human_readable_func ()
     RETURNS TABLE (
-        Peer varchar,
-        PointsChange numeric
+        Peer VARCHAR,
+        PointsChange NUMERIC
     )
-    language plpgsql
+    LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
     SELECT peerlist.peer, sum(pointsamount) s
     FROM (
-        (SELECT peer1 as peer, pointsamount FROM human_readable_transferredPoints() t1)
+        (SELECT peer1 AS peer, pointsamount FROM human_readable_transferredPoints() t1)
         UNION ALL
-        (SELECT peer2 as peer, (pointsamount * -1) FROM human_readable_transferredPoints() t1)
-    ) as peerlist
+        (SELECT peer2 AS peer, (pointsamount * -1) FROM human_readable_transferredPoints() t1)
+    ) AS peerlist
     GROUP BY peerlist.peer
     ORDER BY s DESC;
 END; $$;
@@ -163,32 +162,24 @@ CREATE OR REPLACE FUNCTION fn_mostly_checked_tasks_by_days ()
         Day DATE,
         Task VARCHAR
     )
-    LANGUAGE plpgsql
 AS $$
+#variable_conflict use_column
 BEGIN
     RETURN QUERY
-        WITH day_max AS (
-            SELECT DISTINCT ON (t.check_date) t.check_date, tasks_count
-            FROM (
-                SELECT count(c2.task) AS tasks_count, check_date
-                FROM checks AS c2
-                GROUP BY c2.task, c2.check_date
-            ) AS t
-            ORDER BY t.check_date, tasks_count DESC
-        )
-        SELECT
-            t1.check_date AS Day,
-            t1.task AS Task
-        FROM (
-            SELECT c1.task, count(c1.task) AS tasks_count, c1.check_date
-            FROM checks AS c1
-            GROUP BY c1.task, c1.check_date
-        ) t1
-        INNER JOIN day_max t2
-            ON t1.check_date = t2.check_date
-            AND t1.tasks_count = t2.tasks_count
-        ORDER BY Day;
-END; $$;
+        WITH t AS (SELECT check_date, task, COUNT(task) AS cnt
+                   FROM checks
+                   GROUP BY check_date, task)
+
+        SELECT t.check_date AS day, task
+        FROM t
+            LEFT JOIN (
+                SELECT check_date, MAX(cnt) AS m
+                FROM t
+                GROUP BY check_date
+            ) t2 ON t.check_date = t2.check_date
+        WHERE m = cnt;
+END;
+$$ LANGUAGE plpgsql;
 
 SELECT * FROM fn_mostly_checked_tasks_by_days();
 
@@ -208,12 +199,11 @@ BEGIN
     RETURN QUERY
         WITH successful_checks AS
             (SELECT DISTINCT peer, task,
-                 FIRST_VALUE(check_date) OVER (PARTITION BY peer, task ORDER BY check_date) as date
-             FROM (SELECT * FROM checks WHERE task SIMILAR TO CONCAT(block, '[0-9]%')) as c
-                   LEFT JOIN p2p p ON c.id = p.check_id
-                   LEFT JOIN verter v ON c.id = v.check_id
-            WHERE p.state = 'success' AND (v.state IS NULL OR v.state = 'success'))
-        SELECT peer, MAX(date) as date FROM successful_checks GROUP BY peer
+                 FIRST_VALUE(check_date) OVER (PARTITION BY peer, task ORDER BY check_date) AS date
+             FROM (SELECT * FROM checks WHERE task SIMILAR TO CONCAT(block, '[0-9]%')) AS c
+                   LEFT JOIN xp ON c.id = xp.check_id
+            WHERE xp.xp_amount IS NOT NULL)
+        SELECT peer, MAX(date) AS date FROM successful_checks GROUP BY peer
         HAVING COUNT(task) = (SELECT COUNT(title) FROM tasks WHERE title SIMILAR TO CONCAT(block, '[0-9]%'));
 END;
 $$ LANGUAGE plpgsql;
@@ -228,7 +218,7 @@ SELECT * FROM fn_get_peers_finished_block('C');
    Output format: peer's nickname, nickname of the checker found */
 
 CREATE OR REPLACE FUNCTION fn_wich_peer_should_peer_be_evaluated()
-    RETURNS TABLE (peer VARCHAR, recommended_peer VARCHAR)
+    RETURNS TABLE (peer VARCHAR, RecommendedPeer VARCHAR)
 AS $$
 BEGIN
     RETURN QUERY
@@ -301,8 +291,10 @@ AS $$
                         AND state IS NOT NULL AND state != 'start'),
                 cnt AS (SELECT COUNT(DISTINCT peer) FROM birthday_checks)
         SELECT * FROM
-            (SELECT (COUNT(DISTINCT peer) * 100 / (SELECT * FROM cnt))::INTEGER FROM birthday_checks WHERE state = 'success') as s CROSS JOIN
-            (SELECT (COUNT(DISTINCT peer) * 100 / (SELECT * FROM cnt))::INTEGER FROM birthday_checks WHERE state = 'failure') as f;
+            (SELECT (COUNT(DISTINCT peer) * 100 / NULLIF((SELECT * FROM cnt), 0))::INTEGER
+             FROM birthday_checks WHERE state = 'success') AS s CROSS JOIN
+            (SELECT (COUNT(DISTINCT peer) * 100 / NULLIF((SELECT * FROM cnt), 0))::INTEGER
+             FROM birthday_checks WHERE state = 'failure') AS f;
     END;
 $$ LANGUAGE plpgsql;
 
@@ -334,7 +326,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-SELECT * FROM fn_check_peers_two_of_three_task_done('CPP1_s21_matrix+', 'C2_SimpleBashUtils', 'C3_s21_string+');
+SELECT * FROM fn_check_peers_two_of_three_task_done('C5_s21_decimal', 'C3_s21_string+', 'C4_s21_math');
 
 /* 12) Using recursive common table expression, output the number of preceding
    tasks for each task
@@ -349,9 +341,9 @@ AS $$
 BEGIN
     RETURN QUERY
         WITH RECURSIVE t(title, parent_task) AS
-            (SELECT title as task, parent_task as parent FROM tasks
+            (SELECT title AS task, parent_task AS parent FROM tasks
             UNION ALL
-            SELECT t1.title, t2.parent_task FROM t as t1, tasks as t2
+            SELECT t1.title, t2.parent_task FROM t AS t1, tasks AS t2
             WHERE t1.parent_task = t2.title)
         SELECT title, COUNT(parent_task) FROM t GROUP BY title;
 END;
@@ -406,14 +398,17 @@ SELECT * FROM fn_lucky_days(3);
    Output format: peer's nickname, amount of XP */
 
 CREATE OR REPLACE FUNCTION fn_get_peer_with_max_xp()
-    RETURNS TABLE(peer VARCHAR, XP numeric)
+    RETURNS TABLE(peer VARCHAR, XP NUMERIC)
 AS $$
 BEGIN
     RETURN QUERY
     SELECT
         t.peer,
-        SUM(t.xp) as XP
-    FROM fnc_get_peers_success_tasks_with_xp() as t
+        SUM(t.xp) AS XP
+    FROM (
+        SELECT f.peer, f.task, MAX(f.xp) AS xp
+        FROM fnc_get_peers_success_tasks_with_xp() f
+        GROUP BY f.peer, f.task) AS t
     GROUP BY t.peer
     ORDER BY XP DESC
     LIMIT 1;
@@ -464,7 +459,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-SELECT * FROM fn_get_going_out_peers(2, 1);
+SELECT * FROM fn_get_going_out_peers(NOW()::DATE - '2022-03-22'::DATE + 1, 1);
 
 /* 17) Determine for each month the percentage of early entries
 
