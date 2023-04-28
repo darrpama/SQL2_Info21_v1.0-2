@@ -15,50 +15,75 @@ CREATE OR REPLACE PROCEDURE pr_add_p2p_check(
     new_state         check_state,
     new_check_time    time
 ) AS $$
-    DECLARE
-        new_check_id BIGINT := 0;
-    BEGIN
-        IF new_state = 'start' THEN
-            IF (SELECT count(*) FROM p2p JOIN checks c ON p2p.check_id = c.id
-                WHERE p2p.checking_peer = new_checking_peer
-                    AND c.peer = new_checked_peer
-                    AND c.task = new_task_title) % 2 = 1
-            THEN
-                RAISE EXCEPTION 'The check cannot be added: peer has unfinished check';
-            ELSE
-                INSERT INTO checks (peer, task, check_date)
-                VALUES (new_checked_peer, new_task_title, now())
-                RETURNING id INTO new_check_id;
+DECLARE
+    new_check_id BIGINT := 0;
+BEGIN
+    IF new_state = 'start' THEN
+        IF (SELECT count(*) FROM p2p JOIN checks c ON p2p.check_id = c.id
+            WHERE p2p.checking_peer = new_checking_peer
+              AND c.peer = new_checked_peer
+              AND c.task = new_task_title) % 2 = 1
+        THEN
+            RAISE EXCEPTION 'The check cannot be added: peer has unfinished check';
+        ELSE
+            INSERT INTO checks (peer, task, check_date)
+            VALUES (new_checked_peer, new_task_title, now())
+            RETURNING id INTO new_check_id;
 
-                INSERT INTO p2p (check_id, checking_peer, state, check_time)
-                VALUES (new_check_id, new_checking_peer, new_state, new_check_time);
-            END IF;
+            INSERT INTO p2p (check_id, checking_peer, state, check_time)
+            VALUES (new_check_id, new_checking_peer, new_state, new_check_time);
+        END IF;
+    ELSE
+        IF (SELECT state FROM p2p JOIN checks c ON p2p.check_id = c.id
+            WHERE p2p.checking_peer = new_checking_peer
+              AND c.peer = new_checked_peer
+              AND c.task = new_task_title
+            ORDER BY p2p.id DESC LIMIT 1) != 'start'
+        THEN
+            RAISE EXCEPTION 'The check cannot be added: peer dont have started check';
         ELSE
             new_check_id = (
                 SELECT c.id FROM p2p
-                    INNER JOIN checks c ON c.id = p2p.check_id
+                                     INNER JOIN checks c ON c.id = p2p.check_id
                 WHERE c.peer = new_checked_peer
-                    AND p2p.checking_peer = new_checking_peer
-                    AND task = new_task_title
+                  AND p2p.checking_peer = new_checking_peer
+                  AND task = new_task_title
                 ORDER BY c.id DESC LIMIT 1
             );
             INSERT INTO p2p (check_id, checking_peer, state, check_time)
             VALUES (new_check_id, new_checking_peer, new_state, new_check_time);
         END IF;
-    END
+    END IF;
+END
 $$ LANGUAGE plpgsql;
 
 -------------------------------------------------------------------------------------------
 -- TEST CASES
 -------------------------------------------------------------------------------------------
--- TRUNCATE checks, p2p, verter, xp RESTART IDENTITY CASCADE;
--- SELECT * FROM p2p WHERE checking_peer = 'myregree';
--- CALL pr_add_p2p_check('darrpama', 'myregree', 'C2_SimpleBashUtils', 'start'::check_state, '15:30:01');
--- SELECT * FROM p2p WHERE checking_peer = 'myregree';
--- -- Вызов команды повторно вызовет exception
--- CALL pr_add_p2p_check('darrpama', 'myregree', 'C2_SimpleBashUtils', 'start'::check_state, '15:30:01');
--- CALL pr_add_p2p_check('darrpama', 'myregree', 'C2_SimpleBashUtils', 'success'::check_state, '15:30:01');
+TRUNCATE checks, p2p RESTART IDENTITY CASCADE;
+-- Сначала таблицы, в которые будут добавляться записи очищаются.
+SELECT * FROM p2p;
+SELECT * FROM checks;
+CALL pr_add_p2p_check('darrpama', 'myregree', 'C2_SimpleBashUtils', 'start'::check_state, '15:30:01');
+SELECT * FROM p2p;
+SELECT * FROM checks;
+-- Вызов каждой процедуры повторно вызовет exception
+CALL pr_add_p2p_check('darrpama', 'myregree', 'C2_SimpleBashUtils', 'start'::check_state, '15:30:01');
+CALL pr_add_p2p_check('darrpama', 'myregree', 'C2_SimpleBashUtils', 'success'::check_state, '15:30:01');
+SELECT * FROM p2p;
+SELECT * FROM checks;
 
+TRUNCATE checks RESTART IDENTITY CASCADE;
+CALL import_from_csv ('checks', '/Users/darrpama/projects/sql/SQL2_Info21_v1.0-2/src/csv/03-init_checks.csv', ',');
+SELECT setval('checks_id_seq', (SELECT MAX(id) FROM checks)+1);
+
+TRUNCATE p2p RESTART IDENTITY CASCADE;
+CALL import_from_csv ('p2p', '/Users/darrpama/projects/sql/SQL2_Info21_v1.0-2/src/csv/04-init_p2p.csv', ',');
+SELECT setval('p2p_id_seq', (SELECT MAX(id) FROM p2p)+1);
+
+TRUNCATE verter RESTART IDENTITY CASCADE;
+CALL import_from_csv ('verter', '/Users/darrpama/projects/sql/SQL2_Info21_v1.0-2/src/csv/05-init_verter.csv', ',');
+SELECT setval('verter_id_seq', (SELECT MAX(id) FROM verter)+1);
 
 
 --==========================================================---
