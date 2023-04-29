@@ -2,7 +2,7 @@
 
 filename="part1.sql"
 
-search="/Users/myregree/projects/sql/SQL2_Info21_v1.0-0/src/csv"
+search="/Users/myregree/Desktop/projects/SQL2_Info21_v1.0-2/src/csv/"
 replace="$(pwd)/csv/"
 
 sed -i "" "s~${search}~${replace}~" $filename
