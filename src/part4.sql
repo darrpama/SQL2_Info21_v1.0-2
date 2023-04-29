@@ -87,7 +87,6 @@ BEGIN
             RAISE NOTICE 'Dropping trigger: % on table: %', triggerName.trigger_name, triggerName.event_object_table;
             EXECUTE 'DROP TRIGGER IF EXISTS ' || triggerName.trigger_name || ' ON ' || triggerName.event_object_table || ';';
     END LOOP;
-
     a := result;
 END;
 $$ LANGUAGE plpgsql;
@@ -100,6 +99,7 @@ BEGIN
 END
 $$;
 
+DROP TRIGGER IF EXISTS test_trigger ON peers;
 CREATE TRIGGER test_trigger
   BEFORE UPDATE ON peers
   FOR EACH ROW

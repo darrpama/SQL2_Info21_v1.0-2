@@ -205,7 +205,7 @@ SELECT * FROM verter;
 -- Написать триггер: после добавления записи со статутом "начало" в таблицу P2P,
 -- изменить соответствующую запись в таблице TransferredPoints
 ---------------------------------------------------------------
-CREATE OR REPLACE FUNCTION fnc_transfer_p2p_point() RETURNS TRIGGER AS
+CREATE OR REPLACE FUNCTION fn_transfer_p2p_point() RETURNS TRIGGER AS
 $$
     DECLARE
         checkedPeer text := (
@@ -238,8 +238,9 @@ $$
     END
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trg_transfer_p2p_point ON p2p;
 CREATE TRIGGER trg_transfer_p2p_point AFTER INSERT ON p2p FOR EACH ROW
-EXECUTE FUNCTION fnc_transfer_p2p_point();
+EXECUTE FUNCTION fn_transfer_p2p_point();
 
 -------------------------------------------------------------------------------------------
 -- TEST CASES
@@ -262,7 +263,7 @@ END; $$;
 -- Написать триггер: перед добавлением записи в таблицу XP,
 -- проверить корректность добавляемой записи
 ---------------------------------------------------------------
-CREATE OR REPLACE FUNCTION fnc_trg_xp_max() RETURNS TRIGGER AS $xp$
+CREATE OR REPLACE FUNCTION fn_trg_xp_max() RETURNS TRIGGER AS $xp$
     DECLARE
         maxXp         INT  := (SELECT max_xp FROM tasks INNER JOIN checks c on tasks.title LIKE c.task WHERE c.id = NEW.check_id);
         p2pCheck      BOOL := (SELECT EXISTS(SELECT id FROM p2p WHERE check_id = NEW.check_id AND state = 'success')::BOOL);
@@ -282,9 +283,10 @@ CREATE OR REPLACE FUNCTION fnc_trg_xp_max() RETURNS TRIGGER AS $xp$
     END;
 $xp$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trg_xp_max ON xp;
 CREATE TRIGGER trg_xp_max
     BEFORE INSERT OR UPDATE ON xp
-    FOR EACH ROW EXECUTE PROCEDURE fnc_trg_xp_max();
+    FOR EACH ROW EXECUTE PROCEDURE fn_trg_xp_max();
 
 -------------------------------------------------------------------------------------------
 -- TEST CASES

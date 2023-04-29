@@ -1,3 +1,5 @@
+CALL import_all_from_csv();
+
 /* 1) Write a function that returns the TransferredPoints table in a more
    human-readable form.
 

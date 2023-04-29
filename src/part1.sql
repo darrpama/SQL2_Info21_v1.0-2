@@ -177,63 +177,6 @@ CREATE TABLE IF NOT EXISTS time_tracking
 );
 
 ---------------------------------------------------------------------------------------------
--- IMPORT FROM CSV
----------------------------------------------------------------------------------------------
-CREATE OR REPLACE PROCEDURE import_from_csv(
-    table_name varchar,
-    global_path varchar,
-    delimiter varchar
-) AS $$
-    BEGIN
-        EXECUTE format(
-            'copy %s FROM %L WITH DELIMITER %L CSV HEADER',
-            table_name,
-            global_path,
-            delimiter
-        );
-    END
-$$ LANGUAGE plpgsql;
-
----- Fill tables with data
-TRUNCATE peers RESTART IDENTITY CASCADE;
-CALL import_from_csv ('peers', '/Users/myregree/Desktop/projects/SQL2_Info21_v1.0-2/src/csv/01-init_peers.csv', ',');
-
-TRUNCATE tasks RESTART IDENTITY CASCADE;
-CALL import_from_csv ('tasks', '/Users/myregree/Desktop/projects/SQL2_Info21_v1.0-2/src/csv/02-init_tasks.csv', ',');
-
-TRUNCATE checks RESTART IDENTITY CASCADE;
-CALL import_from_csv ('checks', '/Users/myregree/Desktop/projects/SQL2_Info21_v1.0-2/src/csv/03-init_checks.csv', ',');
-SELECT setval('checks_id_seq', (SELECT MAX(id) FROM checks)+1);
-
-TRUNCATE p2p RESTART IDENTITY CASCADE;
-CALL import_from_csv ('p2p', '/Users/myregree/Desktop/projects/SQL2_Info21_v1.0-2/src/csv/04-init_p2p.csv', ',');
-SELECT setval('p2p_id_seq', (SELECT MAX(id) FROM p2p)+1);
-
-TRUNCATE verter RESTART IDENTITY CASCADE;
-CALL import_from_csv ('verter', '/Users/myregree/Desktop/projects/SQL2_Info21_v1.0-2/src/csv/05-init_verter.csv', ',');
-SELECT setval('verter_id_seq', (SELECT MAX(id) FROM verter)+1);
-
-TRUNCATE transferred_points RESTART IDENTITY CASCADE;
-CALL import_from_csv ('transferred_points', '/Users/myregree/Desktop/projects/SQL2_Info21_v1.0-2/src/csv/06-init_transferred_points.csv', ',');
-SELECT setval('transferred_points_id_seq', (SELECT MAX(id) FROM transferred_points)+1);
-
-TRUNCATE friends RESTART IDENTITY CASCADE;
-CALL import_from_csv ('friends', '/Users/myregree/Desktop/projects/SQL2_Info21_v1.0-2/src/csv/07-init_friends.csv', ',');
-SELECT setval('friends_id_seq', (SELECT MAX(id) FROM friends)+1);
-
-TRUNCATE recommendations RESTART IDENTITY CASCADE;
-CALL import_from_csv ('recommendations', '/Users/myregree/Desktop/projects/SQL2_Info21_v1.0-2/src/csv/08-init_recommendations.csv', ',');
-SELECT setval('recommendations_id_seq', (SELECT MAX(id) FROM recommendations)+1);
-
-TRUNCATE xp RESTART IDENTITY CASCADE;
-CALL import_from_csv ('xp', '/Users/myregree/Desktop/projects/SQL2_Info21_v1.0-2/src/csv/09-init_xp.csv', ',');
-SELECT setval('xp_id_seq', (SELECT MAX(id) FROM xp)+1);
-
-TRUNCATE time_tracking RESTART IDENTITY CASCADE;
-CALL import_from_csv ('time_tracking', '/Users/myregree/Desktop/projects/SQL2_Info21_v1.0-2/src/csv/10-init_time_tracking.csv', ',');
-SELECT setval('time_tracking_id_seq', (SELECT MAX(id) FROM time_tracking)+1);
-
----------------------------------------------------------------------------------------------
 -- EXPORT TO CSV
 ---------------------------------------------------------------------------------------------
 CREATE OR REPLACE PROCEDURE export_to_csv(
@@ -252,8 +195,56 @@ CREATE OR REPLACE PROCEDURE export_to_csv(
 $$ LANGUAGE plpgsql;
 
 -- -- TEST
--- TRUNCATE peers CASCADE;
--- INSERT INTO peers VALUES ('myregree', '1987.10.19');
--- INSERT INTO peers VALUES ('darrpama', '1988.11.20');
--- CALL export_to_csv ('peers', '/Users/myregree/Desktop/projects/SQL2_Info21_v1.0-0/src/peers.csv', ',');
+TRUNCATE peers CASCADE;
+INSERT INTO peers VALUES ('myregree', '1987.10.19');
+INSERT INTO peers VALUES ('darrpama', '1988.11.20');
+CALL export_to_csv ('peers', '/Users/myregree/Desktop/projects/SQL2_Info21_v1.0-2/src/peers.csv', ',');
+
+---------------------------------------------------------------------------------------------
+-- IMPORT FROM CSV
+---------------------------------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE import_from_csv(
+    table_name varchar,
+    global_path varchar,
+    delimiter varchar
+) AS $$
+    BEGIN
+        EXECUTE format(
+            'copy %s FROM %L WITH DELIMITER %L CSV HEADER',
+            table_name,
+            global_path,
+            delimiter
+        );
+    END
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE PROCEDURE import_all_from_csv(
+    path TEXT DEFAULT '/Users/myregree/Desktop/projects/SQL2_Info21_v1.0-2/src/csv/'
+) AS $$
+    BEGIN
+        ---- Fill tables with data
+        TRUNCATE peers, tasks, checks, p2p, verter, transferred_points, friends, recommendations, xp, time_tracking RESTART IDENTITY CASCADE;
+        CALL import_from_csv ('peers', CONCAT(path, '01-init_peers.csv'), ',');
+        CALL import_from_csv ('tasks', CONCAT(path, '02-init_tasks.csv'), ',');
+        CALL import_from_csv ('checks', CONCAT(path, '03-init_checks.csv'), ',');
+        PERFORM setval('checks_id_seq', (SELECT MAX(id) FROM checks)+1);
+        CALL import_from_csv ('p2p', CONCAT(path, '04-init_p2p.csv'), ',');
+        PERFORM setval('p2p_id_seq', (SELECT MAX(id) FROM p2p)+1);
+        CALL import_from_csv ('verter', CONCAT(path, '05-init_verter.csv'), ',');
+        PERFORM setval('verter_id_seq', (SELECT MAX(id) FROM verter)+1);
+        CALL import_from_csv ('transferred_points', CONCAT(path, '06-init_transferred_points.csv'), ',');
+        PERFORM setval('transferred_points_id_seq', (SELECT MAX(id) FROM transferred_points)+1);
+        CALL import_from_csv ('friends', CONCAT(path, '07-init_friends.csv'), ',');
+        PERFORM setval('friends_id_seq', (SELECT MAX(id) FROM friends)+1);
+        CALL import_from_csv ('recommendations', CONCAT(path, '08-init_recommendations.csv'), ',');
+        PERFORM setval('recommendations_id_seq', (SELECT MAX(id) FROM recommendations)+1);
+        CALL import_from_csv ('xp', CONCAT(path, '09-init_xp.csv'), ',');
+        PERFORM setval('xp_id_seq', (SELECT MAX(id) FROM xp)+1);
+        CALL import_from_csv ('time_tracking', CONCAT(path, '10-init_time_tracking.csv'), ',');
+        PERFORM setval('time_tracking_id_seq', (SELECT MAX(id) FROM time_tracking)+1);
+    END
+$$ LANGUAGE plpgsql;
+
+CALL import_all_from_csv();
 
