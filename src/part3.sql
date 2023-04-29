@@ -47,7 +47,7 @@ SELECT * FROM human_readable_transferredPoints();
    (according to the Checks table). One task can be completed successfully
    several times. In this case, include all successful checks in the table. */
 
-CREATE OR REPLACE FUNCTION fnc_get_peers_success_tasks_with_xp()
+CREATE OR REPLACE FUNCTION fn_get_peers_success_tasks_with_xp()
     RETURNS TABLE (
         Peer VARCHAR,
         Task VARCHAR,
@@ -61,7 +61,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-SELECT * FROM fnc_get_peers_success_tasks_with_xp();
+SELECT * FROM fn_get_peers_success_tasks_with_xp();
 
 /* 3) Write a function that finds the peers who have not left campus for the
    whole day.
@@ -407,7 +407,7 @@ BEGIN
         SUM(t.xp) AS XP
     FROM (
         SELECT f.peer, f.task, MAX(f.xp) AS xp
-        FROM fnc_get_peers_success_tasks_with_xp() f
+        FROM fn_get_peers_success_tasks_with_xp() f
         GROUP BY f.peer, f.task) AS t
     GROUP BY t.peer
     ORDER BY XP DESC
