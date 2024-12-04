@@ -2,54 +2,24 @@
 
 Анализ и статистика данных по школе 21.
 
+В данном проекте я закрепил на практике знания SQL. 
+Необходимо создать базу данных со знаниями о Школе 21 и написать процедуры и функции для получения информации, а также процедуры и триггеры для её изменения.
 
 ## Contents
 
-1. [Chapter I](#chapter-i) \
-    1.1. [Introduction](#introduction)
-2. [Chapter II](#chapter-ii) \
-    2.1. [General rules](#general-rules) \
-    2.2. [Logical view of database model](#logical-view-of-database-model)
-3. [Chapter III](#chapter-iii) \
-    3.1. [Part 1. Создание базы данных](#part-1-создание-базы-данных)  
-    3.2. [Part 2. Изменение данных](#part-2-изменение-данных)  
-    3.3. [Part 3. Получение данных](#part-3-получение-данных)  
-    3.4. [Дополнительно. Part 4. Метаданные](#дополнительно-part-4-метаданные)
+1. [Chapter II](#chapter-ii) \
+    1.1. [Logical view of database model](#logical-view-of-database-model)
+2. [Chapter III](#chapter-iii) \
+    2.1. [Part 1. Создание базы данных](#part-1-создание-базы-данных)  
+    2.2. [Part 2. Изменение данных](#part-2-изменение-данных)  
+    2.3. [Part 3. Получение данных](#part-3-получение-данных)  
+    2.4. [Дополнительно. Part 4. Метаданные](#дополнительно-part-4-метаданные)
 
-
-## Chapter I
-
-![Info21 v1.0](misc/images/SQL2_Info21_v1.0.jpg)
-
-Чак остался поработать из дому. Теплый свежесваренный кофе стоял рядом на столе, тонкая струйка пара поднималась над кружкой. Оба монитора показывали экран загрузки ОС и несколько мгновений спустя высветился приветственный экран. Чак лениво потянулся к мышке. Прощелкав ею, он добрался до директории с рабочими файлами. Хотя он работает в финансовом отделе, сегодня у него была совершенно другая задача: помочь с реализацией очередной идеи, пришедшей сверху, будучи одним из тех немногочисленных сотрудников хоть как-то знакомых с SQL. \
-Structured Query Language, или язык, на котором "каждая домохозяйка будет способна написать запрос к базе данных", как когда-то заявляли его создатели. Вот только знакомые домохозяйки Чака по офису все никак не могли справиться с этим зверем, и поэтому именно ему обычно выпадала честь заниматься задачами, связанными с базами данных. Спасал только лишь прошлый программистский опыт. Не зря же он в конце концов просидел в университете все те 4 года.
- 
-`-` "Сначала надо бы спроектировать базу", - пролетело в голове Чака. - "Сущности с параметрами уже где-то были записаны, осталось разобраться со связями. Третьей нормальной формы тут точно хватит". \
-Чак потянулся за листком, но краем глаза заметил распечатанные финансовые отчеты за прошедший период, лежащие неподалеку на столе. \
-`-` "С ними в следующий раз, сначала это. Да и вспомнить SQL на такой более простой задаче не будет лишним". \
-Отхлебнув в итоге сначала кофе, он все-таки добрался до листочка. \
-`-` "Итак, посмотрим, что тут можно придумать", - начал свои размышления Чак..
 
 ## Introduction
 
-В данном проекте Вам предстоит закрепить на практике ваши знания SQL. 
-Вам нужно будет создать базу данных со знаниями о Школе 21 и написать процедуры и функции для получения информации, а также процедуры и триггеры для её изменения.
-
 
 ## Chapter II
-
-## General Rules
-
-- Use this page as the only reference. Do not listen to any rumors and speculations on how to prepare your solution.
-- Please make sure you are using the latest version of PostgreSQL.
-- That is completely OK if you are using an IDE to write a source code (aka SQL script).
-- To be assessed your solution must be in your GIT repository.
-- Your solutions will be evaluated by your peers.
-- You should not leave any additional files in your directory other than sql scripts or csv files. It is recommended that you modify your `.gitignore` to avoid accidents.
-- Do you have a question? Ask your neighbor on the right. Otherwise, try with your neighbor on the left.
-- Your reference manual: peers / Internet / Google.
-- And may the SQL-Force be with you!
-- Absolutely everything can be presented in SQL! Let’s start and have fun!
 
 ## Logical view of database model
 
